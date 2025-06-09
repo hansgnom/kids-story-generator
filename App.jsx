@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 
-const pupOptions = ["Chase", "Skye", "Marshall", "Rubble", "Rocky", "Zuma", "Everest", "Tracker", "Liberty"];
+const pupOptions = ["Chase", "Skye", "Marshall", "Rubble", "Rocky", "Zuma", "Everest", "Tracker", "Rex", "Liberty"];
 const subQuests = [
   "Helping a lost animal",
   "Fixing a broken bridge",
@@ -13,6 +13,7 @@ const languages = ["English", "German", "Slovak"];
 
 export default function App() {
   const [apiKey, setApiKey] = useState("");
+  const [colorTheme, setColorTheme] = useState("light");
   const [theme, setTheme] = useState("");
   const [generatedThemes, setGeneratedThemes] = useState([]);
   const [themesLoading, setThemesLoading] = useState(false);
@@ -20,20 +21,24 @@ export default function App() {
   const [useSubquests, setUseSubquests] = useState(false);
   const [selectedSubquests, setSelectedSubquests] = useState([]);
   const [language, setLanguage] = useState("English");
-  const [storyParts, setStoryParts] = useState({ intro: "", quests: [], outro: "" });
+  const [storyParts, setStoryParts] = useState({
+    intro: { title: "Intro", content: "" },
+    quests: [],
+    outro: { title: "Outro", content: "" }
+  });
   const [loading, setLoading] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
 
+  const toggleTheme = () => {
+    setColorTheme((prev) => (prev === "light" ? "dark" : "light"));
+  };
+
   const togglePup = (pup) => {
-    setSelectedPups((prev) =>
-      prev.includes(pup) ? prev.filter((p) => p !== pup) : [...prev, pup]
-    );
+    setSelectedPups((prev) => (prev.includes(pup) ? prev.filter((p) => p !== pup) : [...prev, pup]));
   };
 
   const toggleSubquest = (quest) => {
-    setSelectedSubquests((prev) =>
-      prev.includes(quest) ? prev.filter((q) => q !== quest) : [...prev, quest]
-    );
+    setSelectedSubquests((prev) => (prev.includes(quest) ? prev.filter((q) => q !== quest) : [...prev, quest]));
   };
 
   const handleGenerateThemes = async () => {
@@ -45,7 +50,7 @@ export default function App() {
     const themePrompt = `
 You are a creative assistant for children's stories. I need you to generate 5 fun and adventurous story themes for a Paw Patrol episode, suitable for children aged 4-8.
 
-For each theme, provide a short, catchy title and a one-sentence description that hints at a light-hearted mission emphasizing teamwork and problem-solving. The themes should be set in exciting locations like a jungle, space, underwater, or a prehistoric world. Please add a relevant emoji to each title.
+For each theme, provide a short, catchy title and a one-sentence description that hints at a light-hearted mission emphasizing teamwork and problem-solving. The themes should be set in exciting locations all over adventure bay and around. Please add a relevant emoji to each title.
 
 Output a single JSON object with a "themes" key, which is an array of objects. Each object should have "title" and "description" keys.
 
@@ -62,13 +67,13 @@ Example format:
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
+          Authorization: `Bearer ${apiKey}`
         },
         body: JSON.stringify({
           model: "gpt-3.5-turbo",
           messages: [{ role: "user", content: themePrompt }],
-          response_format: { type: "json_object" },
-        }),
+          response_format: { type: "json_object" }
+        })
       });
 
       if (!response.ok) {
@@ -97,34 +102,46 @@ Example format:
     setIsRegenerating(true);
 
     let originalContent = "";
-    if (partType === "intro") originalContent = storyParts.intro;
-    else if (partType === "outro") originalContent = storyParts.outro;
-    else if (partType === "quest") originalContent = storyParts.quests[index];
+    let originalTitle = "";
+    if (partType === "intro") {
+      originalContent = storyParts.intro.content;
+      originalTitle = storyParts.intro.title;
+    } else if (partType === "outro") {
+      originalContent = storyParts.outro.content;
+      originalTitle = storyParts.outro.title;
+    } else if (partType === "quest") {
+      originalContent = storyParts.quests[index].content;
+      originalTitle = storyParts.quests[index].title;
+    }
 
     const regenerationPrompt = `
-You are a story editor. Your task is to revise a small part of an existing Paw Patrol story based on a specific request.
+You are a story editor. Your task is to revise a part of a Paw Patrol story based on a specific request and give it a new, creative title.
 
 **Original Story Context:**
 *   Theme/Location: ${theme}
 *   Pups on the Mission: ${selectedPups.join(", ")}
 *   Full Story So Far (for context):
-    *   Intro: ${storyParts.intro}
-    *   Quests: ${storyParts.quests.join("\n\n")}
-    *   Outro: ${storyParts.outro}
+    *   Intro: ${storyParts.intro.content}
+    *   Quests: ${storyParts.quests.map((q) => q.content).join("\n\n")}
+    *   Outro: ${storyParts.outro.content}
 
 **Part to Revise:**
-\`\`\`
-${originalContent}
-\`\`\`
+*   Original Title: "${originalTitle}"
+*   Original Content:
+    \`\`\`
+    ${originalContent}
+    \`\`\`
 
 **User's Request:**
 "${modificationRequest}"
 
 **Your Task:**
-Rewrite ONLY the "Part to Revise" based on the user's request. Maintain the cheerful, imaginative, and age-appropriate tone of the original story. Ensure the revised part flows naturally with the rest of the story. Use emojis! 🥳
+1.  Rewrite ONLY the content based on the user's request. Maintain the cheerful, imaginative, and age-appropriate tone.
+2.  Create a new, short, and creative title for the revised part that reflects its NEW content.
 
 **Output Format:**
-Output ONLY the revised paragraph as a single raw string. Do not wrap it in JSON or add any extra explanations.
+Output a single JSON object with "title" and "content" keys. The content should be the revised paragraph as a single raw string.
+Example: { "title": "A Funny Tumble", "content": "The revised paragraph about a pup tumbling hilariously..." }
 `;
 
     try {
@@ -136,7 +153,8 @@ Output ONLY the revised paragraph as a single raw string. Do not wrap it in JSON
         },
         body: JSON.stringify({
           model: "gpt-4-turbo-preview",
-          messages: [{ role: "user", content: regenerationPrompt }]
+          messages: [{ role: "user", content: regenerationPrompt }],
+          response_format: { type: "json_object" }
         })
       });
 
@@ -146,17 +164,17 @@ Output ONLY the revised paragraph as a single raw string. Do not wrap it in JSON
       }
 
       const data = await response.json();
-      const regeneratedText = data.choices[0].message.content;
+      const regeneratedPart = JSON.parse(data.choices[0].message.content);
 
       setStoryParts((currentParts) => {
         const newParts = { ...currentParts };
         if (partType === "intro") {
-          newParts.intro = regeneratedText;
+          newParts.intro = regeneratedPart;
         } else if (partType === "outro") {
-          newParts.outro = regeneratedText;
+          newParts.outro = regeneratedPart;
         } else if (partType === "quest") {
           const newQuests = [...currentParts.quests];
-          newQuests[index] = regeneratedText;
+          newQuests[index] = regeneratedPart;
           newParts.quests = newQuests;
         }
         return newParts;
@@ -229,14 +247,23 @@ Please provide the output as a single JSON object with three keys: "intro", "que
       const storyContent = JSON.parse(data.choices[0].message.content);
 
       setStoryParts({
-        intro: storyContent.intro || "",
-        quests: Array.isArray(storyContent.quests) ? storyContent.quests : [],
-        outro: storyContent.outro || ""
+        intro: { title: "Intro", content: storyContent.intro || "" },
+        quests: Array.isArray(storyContent.quests)
+          ? storyContent.quests.map((quest, index) => ({
+              title: `Quest ${index + 1}`,
+              content: quest
+            }))
+          : [],
+        outro: { title: "Outro", content: storyContent.outro || "" }
       });
     } catch (error) {
       console.error("Error generating story:", error);
       alert(`Error generating story: ${error.message}`);
-      setStoryParts({ intro: "", quests: [], outro: "" });
+      setStoryParts({
+        intro: { title: "Intro", content: "" },
+        quests: [],
+        outro: { title: "Outro", content: "" }
+      });
     } finally {
       setLoading(false);
     }
@@ -245,14 +272,30 @@ Please provide the output as a single JSON object with three keys: "intro", "que
   return (
     <div className="flex min-h-screen font-sans">
       {/* Sidebar */}
-      <div className="w-72 bg-gray-100 p-4 space-y-6">
-        <h2 className="text-xl font-bold">Story Settings</h2>
+      <div
+        className={`w-72 p-4 space-y-6 ${
+          colorTheme === "dark" ? "bg-gray-800 text-gray-200" : "bg-gray-100"
+        }`}
+      >
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-bold">Story Settings</h2>
+          <button
+            onClick={toggleTheme}
+            className={`p-1 rounded-full ${
+              colorTheme === "dark" ? "hover:bg-gray-700" : "hover:bg-gray-300"
+            }`}
+          >
+            {colorTheme === "light" ? "🌙" : "☀️"}
+          </button>
+        </div>
 
         <div>
           <p className="font-semibold mb-1">OpenAI API Key</p>
           <input
             type="password"
-            className="w-full px-2 py-1 border rounded"
+            className={`w-full px-2 py-1 border rounded ${
+              colorTheme === "dark" ? "bg-gray-700 border-gray-600" : "bg-white"
+            }`}
             placeholder="Enter your API key"
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
@@ -262,7 +305,11 @@ Please provide the output as a single JSON object with three keys: "intro", "que
         <div>
           <p className="font-semibold mb-1">Theme</p>
           <button
-            className="w-full bg-gray-200 py-1 rounded mb-2 hover:bg-gray-300"
+            className={`w-full py-1 rounded mb-2 ${
+              colorTheme === "dark"
+                ? "bg-gray-700 hover:bg-gray-600"
+                : "bg-gray-200 hover:bg-gray-300"
+            }`}
             onClick={handleGenerateThemes}
             disabled={themesLoading || !apiKey || isRegenerating}
           >
@@ -272,12 +319,24 @@ Please provide the output as a single JSON object with three keys: "intro", "que
             <button
               key={t.title}
               className={`block w-full text-left px-2 py-2 rounded mb-1 ${
-                theme === t.title ? "bg-blue-300" : "hover:bg-blue-100"
+                theme === t.title
+                  ? colorTheme === "dark"
+                    ? "bg-blue-700"
+                    : "bg-blue-300"
+                  : colorTheme === "dark"
+                  ? "hover:bg-blue-900"
+                  : "hover:bg-blue-100"
               }`}
               onClick={() => setTheme(t.title)}
             >
               <p className="font-bold">{t.title}</p>
-              <p className="text-sm text-gray-600">{t.description}</p>
+              <p
+                className={`text-sm ${
+                  colorTheme === "dark" ? "text-gray-400" : "text-gray-600"
+                }`}
+              >
+                {t.description}
+              </p>
             </button>
           ))}
         </div>
@@ -289,7 +348,11 @@ Please provide the output as a single JSON object with three keys: "intro", "que
               <button
                 key={pup}
                 className={`px-2 py-1 rounded text-sm ${
-                  selectedPups.includes(pup) ? "bg-blue-400 text-white" : "bg-white border"
+                  selectedPups.includes(pup)
+                    ? "bg-blue-400 text-white"
+                    : colorTheme === "dark"
+                    ? "bg-gray-600 border-gray-500"
+                    : "bg-white border"
                 }`}
                 onClick={() => togglePup(pup)}
               >
@@ -303,13 +366,25 @@ Please provide the output as a single JSON object with three keys: "intro", "que
           <p className="font-semibold mb-1">Subquests</p>
           <div className="flex gap-2 mb-2">
             <button
-              className={`px-2 py-1 rounded ${useSubquests ? "bg-blue-400 text-white" : "bg-white border"}`}
+              className={`px-2 py-1 rounded ${
+                useSubquests
+                  ? "bg-blue-400 text-white"
+                  : colorTheme === "dark"
+                  ? "bg-gray-600 border-gray-500"
+                  : "bg-white border"
+              }`}
               onClick={() => setUseSubquests(true)}
             >
               Yes
             </button>
             <button
-              className={`px-2 py-1 rounded ${!useSubquests ? "bg-blue-400 text-white" : "bg-white border"}`}
+              className={`px-2 py-1 rounded ${
+                !useSubquests
+                  ? "bg-blue-400 text-white"
+                  : colorTheme === "dark"
+                  ? "bg-gray-600 border-gray-500"
+                  : "bg-white border"
+              }`}
               onClick={() => setUseSubquests(false)}
             >
               No
@@ -321,7 +396,11 @@ Please provide the output as a single JSON object with three keys: "intro", "que
                 <button
                   key={q}
                   className={`px-2 py-1 rounded text-sm ${
-                    selectedSubquests.includes(q) ? "bg-blue-400 text-white" : "bg-white border"
+                    selectedSubquests.includes(q)
+                      ? "bg-blue-400 text-white"
+                      : colorTheme === "dark"
+                      ? "bg-gray-600 border-gray-500"
+                      : "bg-white border"
                   }`}
                   onClick={() => toggleSubquest(q)}
                 >
@@ -338,7 +417,13 @@ Please provide the output as a single JSON object with three keys: "intro", "que
             <button
               key={lang}
               className={`block w-full text-left px-2 py-1 rounded mb-1 ${
-                language === lang ? "bg-blue-300" : "hover:bg-blue-100"
+                language === lang
+                  ? colorTheme === "dark"
+                    ? "bg-blue-700"
+                    : "bg-blue-300"
+                  : colorTheme === "dark"
+                  ? "hover:bg-blue-900"
+                  : "hover:bg-blue-100"
               }`}
               onClick={() => setLanguage(lang)}
             >
@@ -348,7 +433,9 @@ Please provide the output as a single JSON object with three keys: "intro", "que
         </div>
 
         <button
-          className="w-full bg-blue-600 text-white py-2 rounded mt-4 hover:bg-blue-700"
+          className={`w-full bg-blue-600 text-white py-2 rounded mt-4 ${
+            colorTheme === "dark" ? "hover:bg-blue-800" : "hover:bg-blue-700"
+          }`}
           onClick={handleGenerateStory}
           disabled={loading || !theme || selectedPups.length === 0 || !apiKey || isRegenerating}
         >
@@ -357,31 +444,42 @@ Please provide the output as a single JSON object with three keys: "intro", "que
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 p-6 space-y-4">
-        <h1 className="text-3xl font-bold text-blue-600 text-center mb-6">
+      <main
+        className={`flex-1 p-6 space-y-4 ${
+          colorTheme === "dark" ? "bg-gray-900 text-gray-200" : "bg-white"
+        }`}
+      >
+        <h1
+          className={`text-3xl font-bold text-center mb-6 ${
+            colorTheme === "dark" ? "text-blue-400" : "text-blue-600"
+          }`}
+        >
           Paw Patrol Adventure Story
         </h1>
 
         <AccordionSection
-          title="Intro"
-          content={storyParts.intro}
+          title={storyParts.intro.title}
+          content={storyParts.intro.content}
           onRegenerate={(request) => handleRegeneratePart("intro", null, request)}
+          colorTheme={colorTheme}
         />
 
         {Array.isArray(storyParts.quests) &&
           storyParts.quests.map((quest, index) => (
             <AccordionSection
               key={index}
-              title={`Quest ${index + 1}`}
-              content={quest}
+              title={quest.title}
+              content={quest.content}
               onRegenerate={(request) => handleRegeneratePart("quest", index, request)}
+              colorTheme={colorTheme}
             />
           ))}
 
         <AccordionSection
-          title="Outro"
-          content={storyParts.outro}
+          title={storyParts.outro.title}
+          content={storyParts.outro.content}
           onRegenerate={(request) => handleRegeneratePart("outro", null, request)}
+          colorTheme={colorTheme}
         />
       </main>
     </div>
@@ -396,7 +494,7 @@ const regenerationProposals = [
   "More emojis ✨"
 ];
 
-function AccordionSection({ title, content, onRegenerate }) {
+function AccordionSection({ title, content, onRegenerate, colorTheme }) {
   const [isOpen, setIsOpen] = useState(true);
   const [modificationRequest, setModificationRequest] = useState("");
   const [selectedProposals, setSelectedProposals] = useState([]);
@@ -404,9 +502,7 @@ function AccordionSection({ title, content, onRegenerate }) {
 
   const toggleProposal = (proposal) => {
     setSelectedProposals((prev) =>
-      prev.includes(proposal)
-        ? prev.filter((p) => p !== proposal)
-        : [...prev, proposal]
+      prev.includes(proposal) ? prev.filter((p) => p !== proposal) : [...prev, proposal]
     );
   };
 
@@ -426,21 +522,43 @@ function AccordionSection({ title, content, onRegenerate }) {
   };
 
   return (
-    <div className="border rounded shadow-sm">
+    <div className={`border rounded shadow-sm ${colorTheme === "dark" ? "border-gray-700" : ""}`}>
       <button
-        className="w-full flex justify-between items-center px-4 py-2 bg-gray-200 hover:bg-gray-300"
+        className={`w-full flex justify-between items-center px-4 py-2 ${
+          colorTheme === "dark"
+            ? "bg-gray-700 hover:bg-gray-600"
+            : "bg-gray-200 hover:bg-gray-300"
+        }`}
         onClick={() => setIsOpen(!isOpen)}
       >
         <span className="font-semibold">{title}</span>
         {isOpen ? <ChevronDown /> : <ChevronRight />}
       </button>
       {isOpen && (
-        <div className="p-4 space-y-3">
-          <div className="whitespace-pre-line text-gray-800">
-            {content || <em className="text-gray-500">No content yet.</em>}
+        <div
+          className={`p-4 space-y-3 ${
+            colorTheme === "dark" ? "bg-gray-800" : "bg-gray-50"
+          }`}
+        >
+          <div
+            className={`whitespace-pre-line ${
+              colorTheme === "dark" ? "text-gray-200" : "text-gray-800"
+            }`}
+          >
+            {content || (
+              <em
+                className={colorTheme === "dark" ? "text-gray-400" : "text-gray-500"}
+              >
+                No content yet.
+              </em>
+            )}
           </div>
           {content && onRegenerate && (
-            <div className="pt-3 border-t mt-3 space-y-3">
+            <div
+              className={`pt-3 border-t mt-3 space-y-3 ${
+                colorTheme === "dark" ? "border-gray-600" : ""
+              }`}
+            >
               <div className="flex flex-wrap gap-2">
                 {regenerationProposals.map((proposal) => (
                   <button
@@ -449,6 +567,8 @@ function AccordionSection({ title, content, onRegenerate }) {
                     className={`px-2 py-1 rounded text-sm ${
                       selectedProposals.includes(proposal)
                         ? "bg-purple-600 text-white"
+                        : colorTheme === "dark"
+                        ? "bg-gray-600 text-white hover:bg-gray-500"
                         : "bg-gray-200 hover:bg-gray-300"
                     }`}
                   >
@@ -459,13 +579,19 @@ function AccordionSection({ title, content, onRegenerate }) {
               <div className="flex gap-2 items-center">
                 <input
                   type="text"
-                  className="flex-grow px-2 py-1 border rounded"
+                  className={`flex-grow px-2 py-1 border rounded ${
+                    colorTheme === "dark" ? "bg-gray-700 border-gray-600" : ""
+                  }`}
                   placeholder="...or add your own custom request here"
                   value={modificationRequest}
                   onChange={(e) => setModificationRequest(e.target.value)}
                 />
                 <button
-                  className="bg-purple-500 text-white px-3 py-1 rounded hover:bg-purple-600 disabled:bg-gray-400"
+                  className={`bg-purple-500 text-white px-3 py-1 rounded hover:bg-purple-600 ${
+                    colorTheme === "dark"
+                      ? "disabled:bg-gray-600"
+                      : "disabled:bg-gray-400"
+                  }`}
                   onClick={handleRegenerateClick}
                   disabled={isRegenerating}
                 >
