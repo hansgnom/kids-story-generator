@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
+import { createClient } from '@supabase/supabase-js';
 
 const pupOptions = [
   { name: "Chase", emoji: "🚓" },
@@ -18,6 +19,9 @@ const translations = {
   "English": {
     welcome: "Welcome, Storyteller!",
     enterApiKey: "Please enter your OpenAI API key to begin our adventure.",
+    enterSupabaseUrl: "Enter your Supabase URL",
+    enterSupabaseAnonKey: "Enter your Supabase Anon Key",
+    saveSettings: "Save Settings",
     letsGo: "Let's Go!",
     beginAdventure: "Let's begin your Paw Patrol adventure! 🐶✨",
     chooseTheme: "Choose a theme for the story setting:",
@@ -40,12 +44,17 @@ const translations = {
     addFinalTwist: "Add a final twist!",
     adventureEnds: "And so the adventure ends... 🌙",
     createANewStory: "Create a new story!",
+    viewSavedStories: "View saved stories",
+    chooseOption: "What would you like to do?",
     thinking: "Thinking of something pawsome...",
     confirmLanguageSwitch: "Are you sure you want to switch the language to"
   },
   "German": {
     welcome: "Willkommen, Geschichtenerzähler!",
     enterApiKey: "Bitte gib deinen OpenAI API-Schlüssel ein, um unser Abenteuer zu beginnen.",
+    enterSupabaseUrl: "Gib deine Supabase-URL ein",
+    enterSupabaseAnonKey: "Gib deinen Supabase Anon Key ein",
+    saveSettings: "Einstellungen speichern",
     letsGo: "Los geht's!",
     beginAdventure: "Beginnen wir dein Paw Patrol Abenteuer! 🐶✨",
     chooseTheme: "Wähle ein Thema für die Geschichte:",
@@ -68,12 +77,17 @@ const translations = {
     addFinalTwist: "Füge eine letzte Wendung hinzu!",
     adventureEnds: "Und so endet das Abenteuer... 🌙",
     createANewStory: "Eine neue Geschichte erstellen!",
+    viewSavedStories: "Gespeicherte Geschichten ansehen",
+    chooseOption: "Was möchtest du tun?",
     thinking: "Denke mir etwas Pfoten-tastisches aus...",
     confirmLanguageSwitch: "Bist du sicher, dass du die Sprache auf"
   },
   "Slovak": {
     welcome: "Vitaj, rozprávač!",
     enterApiKey: "Prosím, zadaj svoj OpenAI API kľúč, aby sme mohli začať naše dobrodružstvo.",
+    enterSupabaseUrl: "Zadajte svoju Supabase URL",
+    enterSupabaseAnonKey: "Zadajte svoj Supabase Anon kľúč",
+    saveSettings: "Uložiť nastavenia",
     letsGo: "Poďme na to!",
     beginAdventure: "Začnime tvoje dobrodružstvo s Labkovou patrolou! 🐶✨",
     chooseTheme: "Vyber si tému pre prostredie príbehu:",
@@ -96,6 +110,8 @@ const translations = {
     addFinalTwist: "Pridaj posledný zvrat!",
     adventureEnds: "A tak sa dobrodružstvo končí... 🌙",
     createANewStory: "Vytvoriť nový príbeh!",
+    viewSavedStories: "Zobraziť uložené príbehy",
+    chooseOption: "Čo by si chcel urobiť?",
     thinking: "Vymýšľam niečo labko-tastické...",
     confirmLanguageSwitch: "Si si istý, že chceš prepnúť jazyk na"
   }
@@ -103,12 +119,12 @@ const translations = {
 
 const LoadingSpinner = ({ language }) => (
   <div className="flex justify-center items-center p-4">
-    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-    <p className="ml-3 text-lg">{translations[language].thinking}</p>
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+    <p className="ml-3 text-lg text-white">{translations[language].thinking}</p>
   </div>
 );
 
-const callOpenAI = async (apiKey, prompt, model = "gpt-4-turbo-preview") => {
+const callOpenAI = async (apiKey, prompt, model = "gpt-4.1") => {
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
@@ -126,27 +142,77 @@ const callOpenAI = async (apiKey, prompt, model = "gpt-4-turbo-preview") => {
   return JSON.parse(data.choices[0].message.content);
 };
 
-function ApiKeyScreen({ onApiKeySubmit, language }) {
-  const [key, setKey] = useState("");
+function SetupScreen({ onSettingsSubmit, language }) {
+  const [apiKey, setApiKey] = useState("");
+  const [supabaseUrl, setSupabaseUrl] = useState("");
+  const [supabaseAnonKey, setSupabaseAnonKey] = useState("");
   const t = translations[language];
+
+  const handleSubmit = () => {
+    onSettingsSubmit({
+      apiKey,
+      supabaseUrl,
+      supabaseAnonKey,
+    });
+  };
+
   return (
     <div className="text-center max-w-md mx-auto">
-      <h1 className="text-3xl font-bold mb-4">{t.welcome}</h1>
-      <p className="mb-6">{t.enterApiKey}</p>
+      <h1 className="text-3xl font-bold mb-4 text-white">{t.welcome}</h1>
+      <p className="mb-2 text-white">{t.enterApiKey}</p>
       <input
         type="password"
         className="w-full px-3 py-2 border rounded shadow-sm mb-4"
         placeholder="Enter your API key"
-        value={key}
-        onChange={(e) => setKey(e.target.value)}
+        value={apiKey}
+        onChange={(e) => setApiKey(e.target.value)}
+      />
+      <p className="mb-2 mt-4 text-white">{t.enterSupabaseUrl}</p>
+      <input
+        type="text"
+        className="w-full px-3 py-2 border rounded shadow-sm mb-4"
+        placeholder="Enter your Supabase URL"
+        value={supabaseUrl}
+        onChange={(e) => setSupabaseUrl(e.target.value)}
+      />
+      <p className="mb-2 text-white">{t.enterSupabaseAnonKey}</p>
+      <input
+        type="password"
+        className="w-full px-3 py-2 border rounded shadow-sm mb-4"
+        placeholder="Enter your Supabase Anon Key"
+        value={supabaseAnonKey}
+        onChange={(e) => setSupabaseAnonKey(e.target.value)}
       />
       <button
         className="bg-blue-500 text-white px-6 py-2 rounded-full hover:bg-blue-600 disabled:bg-gray-400"
-        onClick={() => onApiKeySubmit(key)}
-        disabled={!key}
+        onClick={handleSubmit}
+        disabled={!apiKey || !supabaseUrl || !supabaseAnonKey}
       >
-        {t.letsGo}
+        {t.saveSettings}
       </button>
+    </div>
+  );
+}
+
+function MainMenuScreen({ setStep, language }) {
+  const t = translations[language];
+  return (
+    <div className="text-center max-w-md mx-auto">
+      <h1 className="text-3xl font-bold mb-6 text-white">{t.chooseOption}</h1>
+      <div className="flex flex-col gap-4">
+        <button
+          onClick={() => setStep("THEME_SELECTION")}
+          className="bg-blue-500 text-white px-8 py-4 rounded-full hover:bg-blue-600 text-xl"
+        >
+          {t.createANewStory}
+        </button>
+        <button
+          onClick={() => setStep("SAVED_STORIES")}
+          className="bg-gray-500 text-white px-8 py-4 rounded-full hover:bg-gray-600 text-xl"
+        >
+          {t.viewSavedStories}
+        </button>
+      </div>
     </div>
   );
 }
@@ -163,7 +229,7 @@ function ThemeSelectionScreen({ apiKey, setSelectedTheme, setStep, language }) {
       const data = await callOpenAI(apiKey, themePrompt);
       setThemes(data.themes || []);
     } catch (error) {
-      alert(`Error generating themes: ${error.message}`);
+      console.error(`Error generating themes: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -175,8 +241,8 @@ function ThemeSelectionScreen({ apiKey, setSelectedTheme, setStep, language }) {
 
   return (
     <div className="text-center max-w-2xl mx-auto">
-      <h1 className="text-3xl font-bold mb-2">{t.beginAdventure}</h1>
-      <p className="text-lg mb-6">{t.chooseTheme}</p>
+      <h1 className="text-3xl font-bold mb-2 text-white">{t.beginAdventure}</h1>
+      <p className="text-lg mb-6 text-white">{t.chooseTheme}</p>
       {loading ? (
         <LoadingSpinner language={language} />
       ) : (
@@ -185,7 +251,7 @@ function ThemeSelectionScreen({ apiKey, setSelectedTheme, setStep, language }) {
             {themes.map((theme) => (
               <button
                 key={theme.title}
-                className="p-4 border rounded-lg shadow-sm hover:bg-blue-100 hover:shadow-lg transition text-left"
+                className="p-4 border rounded-lg shadow-sm bg-blue-100 hover:bg-blue-200 transition text-left"
                 onClick={() => {
                   setSelectedTheme(theme);
                   setStep("PUP_SELECTION");
@@ -204,7 +270,7 @@ function ThemeSelectionScreen({ apiKey, setSelectedTheme, setStep, language }) {
           </button>
         </>
       )}
-        </div>
+    </div>
   );
 }
 
@@ -226,8 +292,8 @@ function PupSelectionScreen({ setSelectedPups, setStep, language }) {
 
   return (
     <div className="text-center max-w-2xl mx-auto">
-      <h1 className="text-3xl font-bold mb-2">{t.whichPups}</h1>
-      <p className="text-lg mb-6">{t.chooseUpTo3}</p>
+      <h1 className="text-3xl font-bold mb-2 text-white">{t.whichPups}</h1>
+      <p className="text-lg mb-6 text-white">{t.chooseUpTo3}</p>
       <div className="flex flex-wrap justify-center gap-3 mb-6">
         {pupOptions.map((pup) => (
           <button
@@ -240,10 +306,10 @@ function PupSelectionScreen({ setSelectedPups, setStep, language }) {
             }`}
           >
             {`${pup.name} ${pup.emoji}`}
-            </button>
-          ))}
-        </div>
-              <button
+          </button>
+        ))}
+      </div>
+      <button
         className="bg-blue-500 text-white px-8 py-3 rounded-full hover:bg-blue-600 disabled:bg-gray-400 text-xl"
         onClick={() => {
           setSelectedPups(localSelectedPups);
@@ -274,7 +340,7 @@ function IntroScreen({ apiKey, theme, pups, story, setStory, setStep, language }
         setStory({ ...story, intro: data.intro });
         setStep("STORY_WRITING");
       } catch (e) {
-        alert(e.message);
+        console.error(e.message);
         // Optionally, handle error by going back or allowing a retry
       }
     };
@@ -305,7 +371,7 @@ function StoryWritingScreen({ apiKey, theme, pups, story, setStory, setStep, lan
             const data = await callOpenAI(apiKey, prompt);
             setOptions(data.options || []);
         } catch (e) {
-            alert(e.message);
+            console.error(e.message);
         } finally {
             setLoading(false);
         }
@@ -320,7 +386,7 @@ function StoryWritingScreen({ apiKey, theme, pups, story, setStory, setStep, lan
             const data = await callOpenAI(apiKey, prompt);
             setStory(prev => ({ ...prev, beats: [...prev.beats, data] }));
         } catch (e) {
-            alert(e.message);
+            console.error(e.message);
         } finally {
             setLoadingNextBeat(false);
         }
@@ -342,16 +408,16 @@ function StoryWritingScreen({ apiKey, theme, pups, story, setStory, setStep, lan
 
     return (
         <div className="max-w-3xl mx-auto">
-            <div className="bg-white p-8 rounded-lg shadow-lg">
-                <h1 className="text-3xl font-bold mb-1 text-center">{theme.title}</h1>
-                <p className="text-lg text-gray-600 mb-6 text-center">{theme.description}</p>
+            <div className="bg-black p-8 rounded-lg shadow-lg">
+                <h1 className="text-3xl font-bold mb-1 text-center text-white">{theme.title}</h1>
+                <p className="text-lg text-gray-300 mb-6 text-center">{theme.description}</p>
 
-                <div className="whitespace-pre-line text-gray-700 leading-relaxed mb-6">
-                    <h2 className="text-xl font-bold mb-2 border-b pb-2">Part 1: The Mission Begins</h2>
+                <div className="whitespace-pre-line text-gray-200 leading-relaxed mb-6">
+                    <h2 className="text-xl font-bold mb-2 border-b pb-2 text-white border-gray-500">Part 1: The Mission Begins</h2>
                     <p>{story.intro}</p>
                     {story.beats.map((beat, i) => (
                         <div key={i} className="mt-6">
-                            <h2 className="text-xl font-bold mb-2 border-b pb-2">{`Part ${i + 2}: ${beat.title}`}</h2>
+                            <h2 className="text-xl font-bold mb-2 border-b pb-2 text-white border-gray-500">{`Part ${i + 2}: ${beat.title}`}</h2>
                             <p>{beat.content}</p>
                         </div>
                     ))}
@@ -363,7 +429,7 @@ function StoryWritingScreen({ apiKey, theme, pups, story, setStory, setStep, lan
                     <div className="text-center mt-8">
                         {loading ? <LoadingSpinner language={language} /> : (
                             <>
-                                <h2 className="text-2xl font-bold mb-4">{t.whatHappensNext}</h2>
+                                <h2 className="text-2xl font-bold mb-4 text-white">{t.whatHappensNext}</h2>
                                 <div className="grid grid-cols-1 gap-4">
                                     {options.map((option, i) => (
             <button
@@ -390,9 +456,12 @@ function StoryWritingScreen({ apiKey, theme, pups, story, setStory, setStep, lan
     );
 }
 
-function OutroScreen({ apiKey, theme, pups, story, onRestart, language }) {
+function OutroScreen({ apiKey, theme, pups, story, onRestart, language, supabaseUrl, supabaseAnonKey }) {
     const [loading, setLoading] = useState(false);
     const [outro, setOutro] = useState(null);
+    const [saving, setSaving] = useState(false);
+    const [saveSuccess, setSaveSuccess] = useState(false);
+    const [error, setError] = useState(null);
     const t = translations[language];
 
     const getStoryContext = () => {
@@ -402,58 +471,91 @@ function OutroScreen({ apiKey, theme, pups, story, onRestart, language }) {
 
     const generateOutro = async (withTwist) => {
         setLoading(true);
-        let prompt = `Write a warm, cozy conclusion in ${language} to the adventure. Show the team coming together, celebrating their success. Perfect for a bedtime wind-down.
-        **Story so far:**\n${getStoryContext()}`;
-        
+        let prompt = `Write a warm, cozy conclusion in ${language} to the adventure. Show the team coming together, celebrating their success. Perfect for a bedtime wind-down.\n**Story so far:**\n${getStoryContext()}`;
         if (withTwist) {
-            prompt = `The user wants a final twist! Write one last, fun, surprising mini-challenge or obstacle in ${language}, and then quickly resolve it before writing the warm, cozy conclusion.
-            **Story so far:**\n${getStoryContext()}`;
+            prompt = `The user wants a final twist! Write one last, fun, surprising mini-challenge or obstacle in ${language}, and then quickly resolve it before writing the warm, cozy conclusion.\n**Story so far:**\n${getStoryContext()}`;
         }
-        
         prompt += `\n**Output:** A JSON object with a "title" for the outro section and "content" for the final story text.`;
-
         try {
             const data = await callOpenAI(apiKey, prompt);
             setOutro(data);
         } catch(e) {
-            alert(e.message)
+            console.error(e.message)
         } finally {
             setLoading(false);
         }
     }
 
+    const handleSaveStory = async () => {
+        setSaving(true);
+        setSaveSuccess(false);
+        setError(null);
+        try {
+            const storyData = {
+                Title: theme.title,
+                Description: theme.description,
+                Text: [
+                    `Part 1: The Mission Begins\n${story.intro}`,
+                    ...story.beats.map((beat, i) => `Part ${i + 2}: ${beat.title}\n${beat.content}`),
+                    `The End: ${outro.title}\n${outro.content}`
+                ].join("\n\n")
+            };
+
+            const supabase = createClient(supabaseUrl, supabaseAnonKey);
+            const { data, error } = await supabase
+                .from('story')
+                .insert([storyData])
+                .select();
+
+            if (error) {
+                throw new Error(`Failed to save story: ${error.message}`);
+            }
+
+            console.log('Save response:', data);
+            setSaveSuccess(true);
+        } catch (e) {
+            console.error("Error saving story: " + e.message);
+            setError(e.message);
+        } finally {
+            setSaving(false);
+        }
+    };
+
     if (outro) {
         return (
-            <div className="max-w-3xl mx-auto bg-white p-8 rounded-lg shadow-lg">
-                <h1 className="text-3xl font-bold mb-1 text-center">{theme.title}</h1>
-                <p className="text-lg text-gray-600 mb-6 text-center">{theme.description}</p>
-                <div className="whitespace-pre-line text-gray-700 leading-relaxed">
-                    <h2 className="text-xl font-bold mb-2 border-b pb-2">Part 1: The Mission Begins</h2>
+            <div className="max-w-3xl mx-auto bg-black p-8 rounded-lg shadow-lg">
+                <h1 className="text-3xl font-bold mb-1 text-center text-white">{theme.title}</h1>
+                <p className="text-lg text-gray-300 mb-6 text-center">{theme.description}</p>
+                <div className="whitespace-pre-line text-gray-200 leading-relaxed">
+                    <h2 className="text-xl font-bold mb-2 border-b pb-2 text-white border-gray-500">Part 1: The Mission Begins</h2>
                     <p>{story.intro}</p>
                     {story.beats.map((beat, i) => (
                         <div key={i} className="mt-6">
-                            <h2 className="text-xl font-bold mb-2 border-b pb-2">{`Part ${i + 2}: ${beat.title}`}</h2>
+                            <h2 className="text-xl font-bold mb-2 border-b pb-2 text-white border-gray-500">{`Part ${i + 2}: ${beat.title}`}</h2>
                             <p>{beat.content}</p>
                         </div>
                     ))}
                     <div className="mt-6">
-                        <h2 className="text-xl font-bold mb-2 border-b pb-2">{`The End: ${outro.title}`}</h2>
+                        <h2 className="text-xl font-bold mb-2 border-b pb-2 text-white border-gray-500">{`The End: ${outro.title}`}</h2>
                         <p>{outro.content}</p>
                     </div>
                 </div>
-                <div className="text-center">
+                <div className="text-center flex flex-col items-center gap-4">
                     <button onClick={onRestart} className="mt-8 bg-blue-500 text-white px-8 py-3 rounded-full hover:bg-blue-600 text-xl">
                         {t.createANewStory}
-        </button>
-      </div>
+                    </button>
+                    <button onClick={handleSaveStory} className="bg-green-500 text-white px-8 py-3 rounded-full hover:bg-green-600 text-xl" disabled={saving || saveSuccess}>
+                        {saving ? "Saving..." : saveSuccess ? "Saved!" : "Save Story"}
+                    </button>
+                </div>
             </div>
         )
     }
 
     return (
         <div className="max-w-xl mx-auto text-center">
-            <h1 className="text-3xl font-bold mb-4">{t.wrapItUp}</h1>
-            <p className="text-lg mb-6">{t.finalTwist}</p>
+            <h1 className="text-3xl font-bold mb-4 text-white">{t.wrapItUp}</h1>
+            <p className="text-lg mb-6 text-white">{t.finalTwist}</p>
             {loading ? <LoadingSpinner language={language} /> : (
                 <div className="flex justify-center gap-4">
                     <button onClick={() => generateOutro(false)} className="bg-green-500 text-white px-6 py-3 rounded-full hover:bg-green-600 text-lg">
@@ -464,6 +566,106 @@ function OutroScreen({ apiKey, theme, pups, story, onRestart, language }) {
                     </button>
                 </div>
             )}
+    </div>
+  );
+}
+
+function SavedStoriesScreen({ supabaseUrl, supabaseAnonKey, setStep, language }) {
+  const [stories, setStories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedStory, setSelectedStory] = useState(null);
+  const [error, setError] = useState(null);
+  const t = translations[language];
+
+  useEffect(() => {
+    const fetchStories = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        console.log('Fetching stories from proxy endpoint...');
+        const response = await fetch("https://pnvhjpcoymdrotxgseqk.supabase.co/functions/v1/proxy-request", {
+          method: 'GET',
+          mode: 'cors',
+          headers: {
+            "Accept": "application/json"
+          }
+        });
+        
+        console.log('Response status:', response.status);
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Error response:', errorText);
+          throw new Error(`Failed to fetch stories: ${response.status} ${errorText}`);
+        }
+        
+        const data = await response.json();
+        console.log('Received data:', data);
+        
+        if (!data.data) {
+          throw new Error('Invalid response format: missing data property');
+        }
+        
+        setStories(data.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)));
+      } catch (e) {
+        console.error("Detailed error:", e);
+        setError(e.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStories();
+  }, []);
+
+  if (loading) return <LoadingSpinner language={language} />;
+  
+  if (error) {
+    return (
+      <div className="max-w-2xl mx-auto bg-black p-8 rounded-lg shadow-lg">
+        <button onClick={() => setStep('MAIN_MENU')} className="mb-6 bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600">Back</button>
+        <h1 className="text-3xl font-bold mb-6 text-white">{t.viewSavedStories}</h1>
+        <div className="text-red-500 bg-red-100 p-4 rounded-lg">
+          <p>Error: {error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (selectedStory) {
+    return (
+      <div className="max-w-3xl mx-auto bg-black p-8 rounded-lg shadow-lg">
+        <button onClick={() => setSelectedStory(null)} className="mb-4 bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600">Back</button>
+        <h1 className="text-3xl font-bold mb-1 text-center text-white">{selectedStory.Title}</h1>
+        <p className="text-lg text-gray-300 mb-6 text-center">{selectedStory.Description}</p>
+        <div className="whitespace-pre-line text-gray-200 leading-relaxed">
+          {selectedStory.Text}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto bg-black p-8 rounded-lg shadow-lg">
+      <button onClick={() => setStep('MAIN_MENU')} className="mb-6 bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600">Back</button>
+      <h1 className="text-3xl font-bold mb-6 text-white">{t.viewSavedStories}</h1>
+      {stories.length === 0 ? (
+        <p className="text-white">No stories found.</p>
+      ) : (
+        <ul className="space-y-4">
+          {stories.map(story => (
+            <li key={story.id} className="bg-blue-100 rounded-lg p-4 cursor-pointer hover:bg-blue-200" onClick={() => setSelectedStory(story)}>
+              <h2 className="font-bold text-lg">{story.Title}</h2>
+              <p className="text-gray-700">{story.Description}</p>
+              <p className="text-xs text-gray-500 mt-2">{new Date(story.created_at).toLocaleString()}</p>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
@@ -482,15 +684,17 @@ const ConfirmationModal = ({ message, onConfirm, onCancel }) => (
 
 const LanguageSelector = ({ currentLanguage, onLanguageChange }) => (
   <div className="absolute top-4 right-4 flex gap-2 z-10">
-    <button onClick={() => onLanguageChange("English")} className={`px-3 py-1 rounded-full text-sm ${currentLanguage === 'English' ? 'bg-blue-500 text-white' : 'bg-white'}`}>🇬🇧</button>
-    <button onClick={() => onLanguageChange("German")} className={`px-3 py-1 rounded-full text-sm ${currentLanguage === 'German' ? 'bg-blue-500 text-white' : 'bg-white'}`}>🇩🇪</button>
-    <button onClick={() => onLanguageChange("Slovak")} className={`px-3 py-1 rounded-full text-sm ${currentLanguage === 'Slovak' ? 'bg-blue-500 text-white' : 'bg-white'}`}>🇸🇰</button>
+    <button onClick={() => onLanguageChange("English")} className={`px-3 py-1 rounded-full text-sm border-2 transition ${currentLanguage === 'English' ? 'bg-blue-500 text-white border-blue-500' : 'bg-white hover:bg-blue-100 border-gray-300'}`}>🇬🇧</button>
+    <button onClick={() => onLanguageChange("German")} className={`px-3 py-1 rounded-full text-sm border-2 transition ${currentLanguage === 'German' ? 'bg-blue-500 text-white border-blue-500' : 'bg-white hover:bg-blue-100 border-gray-300'}`}>🇩🇪</button>
+    <button onClick={() => onLanguageChange("Slovak")} className={`px-3 py-1 rounded-full text-sm border-2 transition ${currentLanguage === 'Slovak' ? 'bg-blue-500 text-white border-blue-500' : 'bg-white hover:bg-blue-100 border-gray-300'}`}>🇸🇰</button>
   </div>
 );
 
 export default function App() {
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem("openai_api_key") || "");
-  const [step, setStep] = useState(() => (localStorage.getItem("openai_api_key") ? "THEME_SELECTION" : "API_KEY"));
+  const [apiKey, setApiKey] = useState("");
+  const [supabaseUrl, setSupabaseUrl] = useState("");
+  const [supabaseAnonKey, setSupabaseAnonKey] = useState("");
+  const [step, setStep] = useState("API_KEY");
   const [theme, setTheme] = useState(null);
   const [pups, setPups] = useState([]);
   const [story, setStory] = useState({ intro: "", beats: [] });
@@ -498,18 +702,19 @@ export default function App() {
   const [isTranslating, setIsTranslating] = useState(false);
   const [languageConfirmation, setLanguageConfirmation] = useState(null);
 
-  const handleSetApiKey = (key) => {
-    localStorage.setItem("openai_api_key", key);
-    setApiKey(key);
+  const handleSetApiKey = ({ apiKey, supabaseUrl, supabaseAnonKey }) => {
+    setApiKey(apiKey);
+    setSupabaseUrl(supabaseUrl);
+    setSupabaseAnonKey(supabaseAnonKey);
     setStory({ intro: "", beats: [] });
-    setStep("THEME_SELECTION");
+    setStep("MAIN_MENU");
   };
 
   const handleRestart = () => {
     setTheme(null);
     setPups([]);
     setStory({ intro: "", beats: [] });
-    setStep("THEME_SELECTION");
+    setStep("MAIN_MENU");
   };
 
   const handleLanguageChange = (newLanguage) => {
@@ -553,23 +758,25 @@ export default function App() {
       setStory({ intro: translatedIntro, beats: translatedBeats });
       setLanguage(newLanguage);
     } catch (e) {
-      alert("Something went wrong during translation: " + e.message);
+      console.error("Something went wrong during translation: " + e.message);
     } finally {
       setIsTranslating(false);
     }
   };
 
   const screens = {
-    API_KEY: <ApiKeyScreen onApiKeySubmit={handleSetApiKey} language={language} />,
+    API_KEY: <SetupScreen onSettingsSubmit={handleSetApiKey} language={language} />,
+    MAIN_MENU: <MainMenuScreen setStep={setStep} language={language} />,
     THEME_SELECTION: <ThemeSelectionScreen apiKey={apiKey} setSelectedTheme={setTheme} setStep={setStep} language={language} />,
     PUP_SELECTION: <PupSelectionScreen setSelectedPups={setPups} setStep={setStep} language={language} />,
     INTRO_GENERATION: <IntroScreen apiKey={apiKey} theme={theme} pups={pups} story={story} setStory={setStory} setStep={setStep} language={language} />,
     STORY_WRITING: <StoryWritingScreen apiKey={apiKey} theme={theme} pups={pups} story={story} setStory={setStory} setStep={setStep} language={language} />,
-    OUTRO: <OutroScreen apiKey={apiKey} theme={theme} pups={pups} story={story} onRestart={handleRestart} language={language}/>
+    OUTRO: <OutroScreen apiKey={apiKey} theme={theme} pups={pups} story={story} onRestart={handleRestart} language={language} supabaseUrl={supabaseUrl} supabaseAnonKey={supabaseAnonKey} />,
+    SAVED_STORIES: <SavedStoriesScreen supabaseUrl={supabaseUrl} supabaseAnonKey={supabaseAnonKey} setStep={setStep} language={language} />
   };
 
   return (
-    <div className="bg-blue-100 min-h-screen font-sans flex items-center justify-center p-4 relative">
+    <div className="bg-black min-h-screen font-sans flex items-center justify-center p-4 relative">
       <LanguageSelector currentLanguage={language} onLanguageChange={handleLanguageChange} />
       {isTranslating && (
         <div className="absolute inset-0 bg-white bg-opacity-80 flex justify-center items-center z-50">
