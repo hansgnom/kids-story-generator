@@ -84,14 +84,10 @@ function SetupScreen({ onSettingsSubmit, language, translations }) {
 
 function MainMenuScreen({ setStep, language, translations }) {
   const t = translations[language];
-  const introTexts = {
-    English: `The Migros elves Finn, Eli, Lucy, Tom and their friends have already experienced many adventures together. Maybe you've already heard one or two. Or could it be that you don't know any elves yet?\n\nElves are kind little beings who take great joy in helping. They repair things, tidy up, clean — or, like our little Migros elf crew, they hide inside the checkout counters at Migros. There, in the register, they shine their red helmet lamps from below through the glass onto the barcodes of the items on the conveyor belt, add up the prices with their calculators, and press the "done" button.`,
-    German: `Die Migros-Wichtel Finn, Eli, Lucy, Tom und ihre Freunde haben schon so manches Abenteuer zusammen erlebt. Bestimmt hast du schon das eine oder andere gehört. Oder kann es etwa sein, dass du noch gar keine Wichtel kennst?\n\nWichtel sind liebe kleine Wesen, die eine Riesenfreude daran haben, zu helfen. Sie reparieren Dinge, räumen auf, machen sauber – oder sie verstecken sich, wie unsere kleine Migros-Wichteltruppe, in den Kassen der Migros. Dort, in der Kasse, leuchten sie mit ihren roten Helmlampen von unten durch das Glas auf den Strichcode der Waren auf dem Kassenband, zählen die Preise mit ihren Taschenrechnern zusammen und drücken auf den Fertig-Knopf.`
-  };
   return (
     <div className="text-center max-w-md mx-auto">
       <h1 className="text-3xl font-bold mb-2 text-white">{t.chooseOption}</h1>
-      <p className="text-xs text-gray-300 mb-6 whitespace-pre-line">{introTexts[language]}</p>
+      <p className="text-xs text-gray-300 mb-6 whitespace-pre-line">{t.introText}</p>
       <div className="flex flex-col gap-4">
         <button
           onClick={() => setStep("THEME_SELECTION")}
