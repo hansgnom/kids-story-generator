@@ -106,7 +106,7 @@ function MainMenuScreen({ setStep, language, translations }) {
   );
 }
 
-function ThemeSelectionScreen({ apiKey, setSelectedTheme, setStep, language, translations }) {
+function ThemeSelectionScreen({ apiKey, setSelectedTheme, setStep, language, translations, promptData }) {
   const [themes, setThemes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -114,7 +114,7 @@ function ThemeSelectionScreen({ apiKey, setSelectedTheme, setStep, language, tra
   const generateThemes = async () => {
     setLoading(true);
     try {
-      const themePrompt = `You are a creative assistant. Generate 6 exciting and child-friendly story themes for a Migros Wichtel adventure set in or around the supermarket. The Migros elves Finn, Eli, Lucy, Tom, and their friends have already experienced many adventures together. Elves are kind little beings who take great joy in helping. They repair things, tidy up, clean — or, like our little Migros elf crew, they hide inside the checkout counters at Migros. There, in the register, they shine their red helmet lamps from below through the glass onto the barcodes of the items on the conveyor belt, add up the prices with their calculators, and press the "done" button. The elves' stories always take place in and around the supermarket. They encounter everyday situations there, where they secretly help people or solve problems in their own elf-sized world. It's important that they live unseen in the store — and must never be noticed or spotted by humans. For each theme, provide a short, catchy title with a relevant emoji, and a one-sentence description of the main story. Output a single JSON object with a "themes" key, which is an array of objects. Each object should have "title" and "description" keys. The response should be in ${language}.`;
+      const themePrompt = promptData.migrosWichtelStoryPrompt.themeGeneration;
       const data = await callOpenAI(apiKey, themePrompt);
       setThemes(data.themes || []);
       setCurrentIndex(0);
@@ -248,19 +248,24 @@ function ElveSelectionScreen({ setSelectedElves, setStep, language, elfOptions, 
   );
 }
 
-function IntroScreen({ apiKey, theme, pups, story, setStory, setStep, language, translations }) {
+function IntroScreen({ apiKey, theme, pups, story, setStory, setStep, language, translations, promptData }) {
   useEffect(() => {
     const generateIntro = async () => {
-      const prompt = `You are a creative children's storyteller. Write the intro for a Migros Wichtel story in ${language}.
-      **Theme:** ${theme.title} - ${theme.description}
-      **Elves on the mission:** ${pups.join(", ")}
-      **Context:**
-      The Migros elves Finn, Eli, Lucy, Tom, and their friends have already experienced many adventures together. Elves are kind little beings who take great joy in helping. They repair things, tidy up, clean — or, like our little Migros elf crew, they hide inside the checkout counters at Migros. There, in the register, they shine their red helmet lamps from below through the glass onto the barcodes of the items on the conveyor belt, add up the prices with their calculators, and press the "done" button.
-      The elves' stories always take place in and around the supermarket. They encounter everyday situations there, where they secretly help people or solve problems in their own elf-sized world. It's important that they live unseen in the store — and must never be noticed or spotted by humans.
-      **Instructions:**
-      1. Start with a exciting, interesting hook to start the mission.
-      2. Write multiple paragraph as a setup for the mission, with occasionally funny moments. Enhance with emojis!
-      **Output:** A single JSON object with an "intro" key containing the story text.`;
+      const role = promptData.migrosWichtelStoryPrompt.role;
+      const theme = promptData.migrosWichtelStoryPrompt.theme;
+      const elves = promptData.migrosWichtelStoryPrompt.elves;
+      const expectation = promptData.migrosWichtelStoryPrompt.expectation;
+      const context = promptData.migrosWichtelStoryPrompt.context;
+      const tonalityStyle = promptData.migrosWichtelStoryPrompt.tonalityStyle;
+      const additionalInfo = promptData.migrosWichtelStoryPrompt.additionalInfo;
+      
+      const prompt = `${role}\n${expectation}\n${context}\n${tonalityStyle}\n${additionalInfo}\n${promptData.migrosWichtelStoryPrompt.introGeneration
+        .replace('{theme.title}', theme.title)
+        .replace('{theme.description}', theme.description)
+        .replace('{elves}', pups.join(", "))
+        .replace('{language}', language)}`;
+      console.log("Intro Generation Prompt: ");
+      console.log(prompt);
       try {
         const data = await callOpenAI(apiKey, prompt);
         setStory({ ...story, intro: data.intro });
@@ -278,7 +283,7 @@ function IntroScreen({ apiKey, theme, pups, story, setStory, setStep, language, 
   );
 }
 
-function StoryWritingScreen({ apiKey, theme, pups, story, setStory, setStep, language, translations }) {
+function StoryWritingScreen({ apiKey, theme, pups, story, setStory, setStep, language, translations, promptData }) {
     const [options, setOptions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [loadingNextBeat, setLoadingNextBeat] = useState(false);
@@ -286,9 +291,12 @@ function StoryWritingScreen({ apiKey, theme, pups, story, setStory, setStep, lan
     const getStoryContext = () => story.intro + '\n\n' + story.beats.map((b) => b.content).join('\n\n');
     const generateOptions = async () => {
         setLoading(true);
-        const prompt = `Based on the story so far, provide 3 exciting and logical next-move options for the Migros Wichtel. Keep them short and action-oriented. The response should be in ${language}.
-        **Story so far:**\n${getStoryContext()}
-        **Output:** A JSON object with an "options" key, which is an array of 3 strings.`;
+        const prompt = promptData.migrosWichtelStoryPrompt.nextBeatOptions
+            .replace('{language}', language)
+            .replace('{getStoryContext}', getStoryContext());
+        prompt += `\n**Output:** A JSON object with an "options" key, which is an array of 3 strings.`;
+        console.log("Next Beat Options Prompt: ");
+        console.log(prompt);
         try {
             const data = await callOpenAI(apiKey, prompt);
             setOptions(data.options || []);
@@ -300,9 +308,10 @@ function StoryWritingScreen({ apiKey, theme, pups, story, setStory, setStep, lan
     };
     const generateNextBeat = async (choice) => {
         setLoadingNextBeat(true);
-        const prompt = `The user chose: "${choice}". Write the next part of the story in ${language} in rich, multi-paragraph detail. Include fun dialogue, action and emojis.
-        **Story so far:**\n${getStoryContext()}
-        **Output:** A JSON object with two keys: "title" (a short, creative title for this new part of the story) and "content" (the new story text).`;
+        const prompt = promptData.migrosWichtelStoryPrompt.nextBeatContent
+            .replace('{choice}', choice)
+            .replace('{language}', language)
+            .replace('{getStoryContext}', getStoryContext());
         try {
             const data = await callOpenAI(apiKey, prompt);
             setStory(prev => ({ ...prev, beats: [...prev.beats, data] }));
@@ -370,7 +379,7 @@ function StoryWritingScreen({ apiKey, theme, pups, story, setStory, setStep, lan
     );
 }
 
-function OutroScreen({ apiKey, theme, pups, story, onRestart, language, supabaseUrl, supabaseAnonKey, translations }) {
+function OutroScreen({ apiKey, theme, pups, story, onRestart, language, supabaseUrl, supabaseAnonKey, translations, promptData }) {
     const [loading, setLoading] = useState(false);
     const [outro, setOutro] = useState(null);
     const [saving, setSaving] = useState(false);
@@ -383,10 +392,21 @@ function OutroScreen({ apiKey, theme, pups, story, onRestart, language, supabase
     };
     const generateOutro = async (withTwist) => {
         setLoading(true);
-        let prompt = `Write a warm, cozy conclusion in ${language} to the adventure. Show the team coming together, celebrating their success. Perfect for a bedtime wind-down.\n**Story so far:**\n${getStoryContext()}`;
+        const role = promptData.migrosWichtelStoryPrompt.role;
+        const expectation = promptData.migrosWichtelStoryPrompt.expectation;
+        const context = promptData.migrosWichtelStoryPrompt.context;
+        const tonalityStyle = promptData.migrosWichtelStoryPrompt.tonalityStyle;
+        const additionalInfo = promptData.migrosWichtelStoryPrompt.additionalInfo;
+        
+        let prompt = `${role}\n${expectation}\n${context}\n${tonalityStyle}\n${additionalInfo}\n`;
         if (withTwist) {
-            prompt = `The user wants a final twist! Write one last, fun, surprising mini-challenge or obstacle in ${language}, and then quickly resolve it before writing the warm, cozy conclusion.\n**Story so far:**\n${getStoryContext()}`;
+            prompt += promptData.migrosWichtelStoryPrompt.outroGenerationWithTwist;
+        } else {
+            prompt += promptData.migrosWichtelStoryPrompt.outroGeneration;
         }
+        prompt = prompt
+            .replace('{language}', language)
+            .replace('{getStoryContext}', getStoryContext());
         prompt += `\n**Output:** A JSON object with a "title" for the outro section and "content" for the final story text.`;
         try {
             const data = await callOpenAI(apiKey, prompt);
@@ -607,6 +627,7 @@ export default function App() {
   const [languageConfirmation, setLanguageConfirmation] = useState(null);
   const [elfOptions, setElfOptions] = useState([]);
   const [translations, setTranslations] = useState({});
+  const [promptData, setPromptData] = useState({});
   const [dataLoading, setDataLoading] = useState(true);
   const [dataError, setDataError] = useState(null);
 
@@ -615,17 +636,19 @@ export default function App() {
       setDataLoading(true);
       setDataError(null);
       try {
-        const [elfRes, transRes] = await Promise.all([
+        const [elfRes, transRes, promptRes] = await Promise.all([
           fetch('https://raw.githubusercontent.com/hansgnom/kids-story-generator/main/elfOptions.json'),
           fetch('https://raw.githubusercontent.com/hansgnom/kids-story-generator/main/translations.json')
         ]);
-        if (!elfRes.ok || !transRes.ok) throw new Error('Failed to load data files');
-        const [elfData, transData] = await Promise.all([
+        if (!elfRes.ok || !transRes.ok || !promptRes.ok) throw new Error('Failed to load data files');
+        const [elfData, transData, promptData] = await Promise.all([
           elfRes.json(),
-          transRes.json()
+          transRes.json(),
+          promptRes.json()
         ]);
         setElfOptions(elfData);
         setTranslations(transData);
+        setPromptData(promptData);
       } catch (e) {
         setDataError(e.message);
       } finally {
@@ -701,11 +724,11 @@ export default function App() {
   const screens = {
     API_KEY: <SetupScreen onSettingsSubmit={handleSetApiKey} language={language} translations={translations} />,
     MAIN_MENU: <MainMenuScreen setStep={setStep} language={language} translations={translations} />,
-    THEME_SELECTION: <ThemeSelectionScreen apiKey={apiKey} setSelectedTheme={setTheme} setStep={setStep} language={language} translations={translations} />,
+    THEME_SELECTION: <ThemeSelectionScreen apiKey={apiKey} setSelectedTheme={setTheme} setStep={setStep} language={language} translations={translations} promptData={promptData} />,
     PUP_SELECTION: <ElveSelectionScreen setSelectedElves={setPups} setStep={setStep} language={language} elfOptions={elfOptions} translations={translations} />,
-    INTRO_GENERATION: <IntroScreen apiKey={apiKey} theme={theme} pups={pups} story={story} setStory={setStory} setStep={setStep} language={language} translations={translations} />,
-    STORY_WRITING: <StoryWritingScreen apiKey={apiKey} theme={theme} pups={pups} story={story} setStory={setStory} setStep={setStep} language={language} translations={translations} />,
-    OUTRO: <OutroScreen apiKey={apiKey} theme={theme} pups={pups} story={story} onRestart={handleRestart} language={language} supabaseUrl={supabaseUrl} supabaseAnonKey={supabaseAnonKey} translations={translations} />,
+    INTRO_GENERATION: <IntroScreen apiKey={apiKey} theme={theme} pups={pups} story={story} setStory={setStory} setStep={setStep} language={language} translations={translations} promptData={promptData} />,
+    STORY_WRITING: <StoryWritingScreen apiKey={apiKey} theme={theme} pups={pups} story={story} setStory={setStory} setStep={setStep} language={language} translations={translations} promptData={promptData} />,
+    OUTRO: <OutroScreen apiKey={apiKey} theme={theme} pups={pups} story={story} onRestart={handleRestart} language={language} supabaseUrl={supabaseUrl} supabaseAnonKey={supabaseAnonKey} translations={translations} promptData={promptData} />,
     SAVED_STORIES: <SavedStoriesScreen supabaseUrl={supabaseUrl} supabaseAnonKey={supabaseAnonKey} setStep={setStep} language={language} translations={translations} />
   };
 
