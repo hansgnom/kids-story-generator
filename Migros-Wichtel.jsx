@@ -114,7 +114,14 @@ function ThemeSelectionScreen({ apiKey, setSelectedTheme, setStep, language, tra
   const generateThemes = async () => {
     setLoading(true);
     try {
-      const themePrompt = promptData.migrosWichtelStoryPrompt.themeGeneration;
+      const role = promptData.migrosWichtelStoryPrompt.role;
+      const expectation = promptData.migrosWichtelStoryPrompt.expectation;
+      const context = promptData.migrosWichtelStoryPrompt.context;
+      const tonalityStyle = promptData.migrosWichtelStoryPrompt.tonalityStyle;
+      const additionalInfo = promptData.migrosWichtelStoryPrompt.additionalInfo;
+      const themePrompt = `${role}\n${expectation}\n${context}\n${tonalityStyle}\n${additionalInfo}\n${promptData.migrosWichtelStoryPrompt.themeGeneration
+        .replace('{language}', language)}`;
+
       const data = await callOpenAI(apiKey, themePrompt);
       setThemes(data.themes || []);
       setCurrentIndex(0);
@@ -259,7 +266,7 @@ function IntroScreen({ apiKey, theme, pups, story, setStory, setStep, language, 
       const tonalityStyle = promptData.migrosWichtelStoryPrompt.tonalityStyle;
       const additionalInfo = promptData.migrosWichtelStoryPrompt.additionalInfo;
       
-      const prompt = `${role}\n${expectation}\n${context}\n${tonalityStyle}\n${additionalInfo}\n${promptData.migrosWichtelStoryPrompt.introGeneration
+      const prompt = `${role}\n${theme}\n${elves}\n${expectation}\n${context}\n${tonalityStyle}\n${additionalInfo}\n${promptData.migrosWichtelStoryPrompt.introGeneration
         .replace('{theme.title}', theme.title)
         .replace('{theme.description}', theme.description)
         .replace('{elves}', pups.join(", "))
@@ -291,7 +298,7 @@ function StoryWritingScreen({ apiKey, theme, pups, story, setStory, setStep, lan
     const getStoryContext = () => story.intro + '\n\n' + story.beats.map((b) => b.content).join('\n\n');
     const generateOptions = async () => {
         setLoading(true);
-        const prompt = promptData.migrosWichtelStoryPrompt.nextBeatOptions
+        let prompt = promptData.migrosWichtelStoryPrompt.nextBeatOptions
             .replace('{language}', language)
             .replace('{getStoryContext}', getStoryContext());
         prompt += `\n**Output:** A JSON object with an "options" key, which is an array of 3 strings.`;
@@ -638,7 +645,8 @@ export default function App() {
       try {
         const [elfRes, transRes, promptRes] = await Promise.all([
           fetch('https://raw.githubusercontent.com/hansgnom/kids-story-generator/main/elfOptions.json'),
-          fetch('https://raw.githubusercontent.com/hansgnom/kids-story-generator/main/translations.json')
+          fetch('https://raw.githubusercontent.com/hansgnom/kids-story-generator/main/translations.json'),
+          fetch('https://raw.githubusercontent.com/hansgnom/kids-story-generator/main/prompt.json')
         ]);
         if (!elfRes.ok || !transRes.ok || !promptRes.ok) throw new Error('Failed to load data files');
         const [elfData, transData, promptData] = await Promise.all([
