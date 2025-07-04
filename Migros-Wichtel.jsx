@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react";
 import { ChevronDown, ChevronRight, ChevronLeft } from "lucide-react";
 import { createClient } from '@supabase/supabase-js';
 
-const LoadingSpinner = ({ language }) => (
+const LoadingSpinner = ({ language, translations }) => (
   <div className="flex justify-center items-center p-4">
     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
-    <p className="ml-3 text-lg text-white">{translations[language].thinking}</p>
+    <p className="ml-3 text-lg text-white">{translations[language]?.thinking || "Thinking..."}</p>
   </div>
 );
 
@@ -27,7 +27,7 @@ const callOpenAI = async (apiKey, prompt, model = "gpt-4.1") => {
   return JSON.parse(data.choices[0].message.content);
 };
 
-function SetupScreen({ onSettingsSubmit, language }) {
+function SetupScreen({ onSettingsSubmit, language, translations }) {
   const [apiKey, setApiKey] = useState("");
   const [supabaseUrl, setSupabaseUrl] = useState("");
   const [supabaseAnonKey, setSupabaseAnonKey] = useState("");
@@ -82,7 +82,7 @@ function SetupScreen({ onSettingsSubmit, language }) {
   );
 }
 
-function MainMenuScreen({ setStep, language }) {
+function MainMenuScreen({ setStep, language, translations }) {
   const t = translations[language];
   const introTexts = {
     English: `The Migros elves Finn, Eli, Lucy, Tom and their friends have already experienced many adventures together. Maybe you've already heard one or two. Or could it be that you don't know any elves yet?\n\nElves are kind little beings who take great joy in helping. They repair things, tidy up, clean — or, like our little Migros elf crew, they hide inside the checkout counters at Migros. There, in the register, they shine their red helmet lamps from below through the glass onto the barcodes of the items on the conveyor belt, add up the prices with their calculators, and press the "done" button.`,
@@ -110,7 +110,7 @@ function MainMenuScreen({ setStep, language }) {
   );
 }
 
-function ThemeSelectionScreen({ apiKey, setSelectedTheme, setStep, language }) {
+function ThemeSelectionScreen({ apiKey, setSelectedTheme, setStep, language, translations }) {
   const [themes, setThemes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -142,7 +142,7 @@ function ThemeSelectionScreen({ apiKey, setSelectedTheme, setStep, language }) {
       <h1 className="text-3xl font-bold mb-2 text-white">{t.beginAdventure}</h1>
       <p className="text-lg mb-6 text-white">{t.chooseTheme}</p>
       {loading ? (
-        <LoadingSpinner language={language} />
+        <LoadingSpinner language={language} translations={translations} />
       ) : (
         <>
           {themes.length > 0 && (
@@ -199,9 +199,9 @@ function ThemeSelectionScreen({ apiKey, setSelectedTheme, setStep, language }) {
   );
 }
 
-function ElveSelectionScreen({ setSelectedElves, setStep, language }) {
+function ElveSelectionScreen({ setSelectedElves, setStep, language, elfOptions, translations }) {
   const [localSelectedElves, setLocalSelectedElves] = useState([]);
-  const t = translations[language];
+  const t = translations[language] || {};
   const toggleElve = (elveName) => {
     setLocalSelectedElves((prev) => {
       if (prev.includes(elveName)) {
@@ -252,7 +252,7 @@ function ElveSelectionScreen({ setSelectedElves, setStep, language }) {
   );
 }
 
-function IntroScreen({ apiKey, theme, pups, story, setStory, setStep, language }) {
+function IntroScreen({ apiKey, theme, pups, story, setStory, setStep, language, translations }) {
   useEffect(() => {
     const generateIntro = async () => {
       const prompt = `You are a creative children's storyteller. Write the intro for a Migros Wichtel story in ${language}.
@@ -277,12 +277,12 @@ function IntroScreen({ apiKey, theme, pups, story, setStory, setStep, language }
   }, []);
   return (
     <div className="max-w-3xl mx-auto">
-      <LoadingSpinner language={language} />
+      <LoadingSpinner language={language} translations={translations} />
     </div>
   );
 }
 
-function StoryWritingScreen({ apiKey, theme, pups, story, setStory, setStep, language }) {
+function StoryWritingScreen({ apiKey, theme, pups, story, setStory, setStep, language, translations }) {
     const [options, setOptions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [loadingNextBeat, setLoadingNextBeat] = useState(false);
@@ -333,19 +333,19 @@ function StoryWritingScreen({ apiKey, theme, pups, story, setStory, setStep, lan
                 <h1 className="text-3xl font-bold mb-1 text-center text-white">{theme.title}</h1>
                 <p className="text-lg text-gray-300 mb-6 text-center">{theme.description}</p>
                 <div className="whitespace-pre-line text-gray-200 leading-relaxed mb-6">
-                    <h2 className="text-xl font-bold mb-2 border-b pb-2 text-white border-gray-500">Part 1: The Mission Begins</h2>
+                    <h2 className="text-xl font-bold mb-2 border-b pb-2 text-white border-gray-500">{t.part} 1: {t.theMissionBegins}</h2>
                     <p>{story.intro}</p>
                     {story.beats.map((beat, i) => (
                         <div key={i} className="mt-6">
-                            <h2 className="text-xl font-bold mb-2 border-b pb-2 text-white border-gray-500">{`Part ${i + 2}: ${beat.title}`}</h2>
+                            <h2 className="text-xl font-bold mb-2 border-b pb-2 text-white border-gray-500">{`${t.part} ${i + 2}: ${beat.title}`}</h2>
                             <p>{beat.content}</p>
                         </div>
                     ))}
                 </div>
-                {loadingNextBeat && <LoadingSpinner language={language} />}
+                {loadingNextBeat && <LoadingSpinner language={language} translations={translations} />}
                 {!loadingNextBeat && (
                     <div className="text-center mt-8">
-                        {loading ? <LoadingSpinner language={language} /> : (
+                        {loading ? <LoadingSpinner language={language} translations={translations} /> : (
                             <>
                                 <h2 className="text-2xl font-bold mb-4 text-white">{t.whatHappensNext}</h2>
                                 <div className="grid grid-cols-1 gap-4">
@@ -374,7 +374,7 @@ function StoryWritingScreen({ apiKey, theme, pups, story, setStory, setStep, lan
     );
 }
 
-function OutroScreen({ apiKey, theme, pups, story, onRestart, language, supabaseUrl, supabaseAnonKey }) {
+function OutroScreen({ apiKey, theme, pups, story, onRestart, language, supabaseUrl, supabaseAnonKey, translations }) {
     const [loading, setLoading] = useState(false);
     const [outro, setOutro] = useState(null);
     const [saving, setSaving] = useState(false);
@@ -410,9 +410,9 @@ function OutroScreen({ apiKey, theme, pups, story, onRestart, language, supabase
                 Title: theme.title,
                 Description: theme.description,
                 Text: [
-                    `Part 1: The Mission Begins\n${story.intro}`,
-                    ...story.beats.map((beat, i) => `Part ${i + 2}: ${beat.title}\n${beat.content}`),
-                    `The End: ${outro.title}\n${outro.content}`
+                    `${t.part} 1: ${t.theMissionBegins}\n${story.intro}`,
+                    ...story.beats.map((beat, i) => `${t.part} ${i + 2}: ${beat.title}\n${beat.content}`),
+                    `${t.theEnd}: ${outro.title}\n${outro.content}`
                 ].join("\n\n")
             };
             const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -438,16 +438,16 @@ function OutroScreen({ apiKey, theme, pups, story, onRestart, language, supabase
                 <h1 className="text-3xl font-bold mb-1 text-center text-white">{theme.title}</h1>
                 <p className="text-lg text-gray-300 mb-6 text-center">{theme.description}</p>
                 <div className="whitespace-pre-line text-gray-200 leading-relaxed">
-                    <h2 className="text-xl font-bold mb-2 border-b pb-2 text-white border-gray-500">Part 1: The Mission Begins</h2>
+                    <h2 className="text-xl font-bold mb-2 border-b pb-2 text-white border-gray-500">{t.part} 1: {t.theMissionBegins}</h2>
                     <p>{story.intro}</p>
                     {story.beats.map((beat, i) => (
                         <div key={i} className="mt-6">
-                            <h2 className="text-xl font-bold mb-2 border-b pb-2 text-white border-gray-500">{`Part ${i + 2}: ${beat.title}`}</h2>
+                            <h2 className="text-xl font-bold mb-2 border-b pb-2 text-white border-gray-500">{`${t.part} ${i + 2}: ${beat.title}`}</h2>
                             <p>{beat.content}</p>
                         </div>
                     ))}
                     <div className="mt-6">
-                        <h2 className="text-xl font-bold mb-2 border-b pb-2 text-white border-gray-500">{`The End: ${outro.title}`}</h2>
+                        <h2 className="text-xl font-bold mb-2 border-b pb-2 text-white border-gray-500">{`${t.theEnd}: ${outro.title}`}</h2>
                         <p>{outro.content}</p>
                     </div>
                 </div>
@@ -466,7 +466,7 @@ function OutroScreen({ apiKey, theme, pups, story, onRestart, language, supabase
         <div className="max-w-xl mx-auto text-center">
             <h1 className="text-3xl font-bold mb-4 text-white">{t.wrapItUp}</h1>
             <p className="text-lg mb-6 text-white">{t.finalTwist}</p>
-            {loading ? <LoadingSpinner language={language} /> : (
+            {loading ? <LoadingSpinner language={language} translations={translations} /> : (
                 <div className="flex justify-center gap-4">
                     <button onClick={() => generateOutro(false)} className="bg-green-500 text-white px-6 py-3 rounded-full hover:bg-green-600 text-lg">
                         {t.endItHere}
@@ -480,7 +480,7 @@ function OutroScreen({ apiKey, theme, pups, story, onRestart, language, supabase
   );
 }
 
-function SavedStoriesScreen({ supabaseUrl, supabaseAnonKey, setStep, language }) {
+function SavedStoriesScreen({ supabaseUrl, supabaseAnonKey, setStep, language, translations }) {
   const [stories, setStories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedStory, setSelectedStory] = useState(null);
@@ -525,7 +525,7 @@ function SavedStoriesScreen({ supabaseUrl, supabaseAnonKey, setStep, language })
     fetchStories();
   }, []);
 
-  if (loading) return <LoadingSpinner language={language} />;
+  if (loading) return <LoadingSpinner language={language} translations={translations} />;
   
   if (error) {
     return (
@@ -703,14 +703,14 @@ export default function App() {
     }
   };
   const screens = {
-    API_KEY: <SetupScreen onSettingsSubmit={handleSetApiKey} language={language} />,
-    MAIN_MENU: <MainMenuScreen setStep={setStep} language={language} />,
-    THEME_SELECTION: <ThemeSelectionScreen apiKey={apiKey} setSelectedTheme={setTheme} setStep={setStep} language={language} />,
-    PUP_SELECTION: <ElveSelectionScreen setSelectedElves={setPups} setStep={setStep} language={language} />,
-    INTRO_GENERATION: <IntroScreen apiKey={apiKey} theme={theme} pups={pups} story={story} setStory={setStory} setStep={setStep} language={language} />,
-    STORY_WRITING: <StoryWritingScreen apiKey={apiKey} theme={theme} pups={pups} story={story} setStory={setStory} setStep={setStep} language={language} />,
-    OUTRO: <OutroScreen apiKey={apiKey} theme={theme} pups={pups} story={story} onRestart={handleRestart} language={language} supabaseUrl={supabaseUrl} supabaseAnonKey={supabaseAnonKey} />,
-    SAVED_STORIES: <SavedStoriesScreen supabaseUrl={supabaseUrl} supabaseAnonKey={supabaseAnonKey} setStep={setStep} language={language} />
+    API_KEY: <SetupScreen onSettingsSubmit={handleSetApiKey} language={language} translations={translations} />,
+    MAIN_MENU: <MainMenuScreen setStep={setStep} language={language} translations={translations} />,
+    THEME_SELECTION: <ThemeSelectionScreen apiKey={apiKey} setSelectedTheme={setTheme} setStep={setStep} language={language} translations={translations} />,
+    PUP_SELECTION: <ElveSelectionScreen setSelectedElves={setPups} setStep={setStep} language={language} elfOptions={elfOptions} translations={translations} />,
+    INTRO_GENERATION: <IntroScreen apiKey={apiKey} theme={theme} pups={pups} story={story} setStory={setStory} setStep={setStep} language={language} translations={translations} />,
+    STORY_WRITING: <StoryWritingScreen apiKey={apiKey} theme={theme} pups={pups} story={story} setStory={setStory} setStep={setStep} language={language} translations={translations} />,
+    OUTRO: <OutroScreen apiKey={apiKey} theme={theme} pups={pups} story={story} onRestart={handleRestart} language={language} supabaseUrl={supabaseUrl} supabaseAnonKey={supabaseAnonKey} translations={translations} />,
+    SAVED_STORIES: <SavedStoriesScreen supabaseUrl={supabaseUrl} supabaseAnonKey={supabaseAnonKey} setStep={setStep} language={language} translations={translations} />
   };
 
   return (
@@ -718,12 +718,12 @@ export default function App() {
       <LanguageSelector currentLanguage={language} onLanguageChange={handleLanguageChange} />
       {isTranslating && (
         <div className="absolute inset-0 bg-white bg-opacity-80 flex justify-center items-center z-50">
-          <LoadingSpinner language={language} />
+          <LoadingSpinner language={language} translations={translations} />
         </div>
       )}
       {languageConfirmation && (
         <ConfirmationModal
-          message={`${translations[language].confirmLanguageSwitch} ${languageConfirmation}? This will translate the entire story and UI.`}
+          message={`${translations[language]?.confirmLanguageSwitch || "Are you sure you want to switch the language to"} ${languageConfirmation}? This will translate the entire story and UI.`}
           onConfirm={executeLanguageChange}
           onCancel={() => setLanguageConfirmation(null)}
         />

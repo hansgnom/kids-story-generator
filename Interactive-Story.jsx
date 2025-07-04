@@ -117,10 +117,10 @@ const translations = {
   }
 };
 
-const LoadingSpinner = ({ language }) => (
+const LoadingSpinner = ({ language, translations }) => (
   <div className="flex justify-center items-center p-4">
     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
-    <p className="ml-3 text-lg text-white">{translations[language].thinking}</p>
+    <p className="ml-3 text-lg text-white">{translations[language]?.thinking || "Thinking..."}</p>
   </div>
 );
 
@@ -244,7 +244,7 @@ function ThemeSelectionScreen({ apiKey, setSelectedTheme, setStep, language }) {
       <h1 className="text-3xl font-bold mb-2 text-white">{t.beginAdventure}</h1>
       <p className="text-lg mb-6 text-white">{t.chooseTheme}</p>
       {loading ? (
-        <LoadingSpinner language={language} />
+        <LoadingSpinner language={language} translations={translations} />
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -349,7 +349,7 @@ function IntroScreen({ apiKey, theme, pups, story, setStory, setStep, language }
 
   return (
     <div className="max-w-3xl mx-auto">
-      <LoadingSpinner language={language} />
+      <LoadingSpinner language={language} translations={translations} />
     </div>
   );
 }
@@ -423,11 +423,11 @@ function StoryWritingScreen({ apiKey, theme, pups, story, setStory, setStep, lan
                     ))}
                 </div>
 
-                {loadingNextBeat && <LoadingSpinner language={language} />}
+                {loadingNextBeat && <LoadingSpinner language={language} translations={translations} />}
                 
                 {!loadingNextBeat && (
                     <div className="text-center mt-8">
-                        {loading ? <LoadingSpinner language={language} /> : (
+                        {loading ? <LoadingSpinner language={language} translations={translations} /> : (
                             <>
                                 <h2 className="text-2xl font-bold mb-4 text-white">{t.whatHappensNext}</h2>
                                 <div className="grid grid-cols-1 gap-4">
@@ -556,7 +556,7 @@ function OutroScreen({ apiKey, theme, pups, story, onRestart, language, supabase
         <div className="max-w-xl mx-auto text-center">
             <h1 className="text-3xl font-bold mb-4 text-white">{t.wrapItUp}</h1>
             <p className="text-lg mb-6 text-white">{t.finalTwist}</p>
-            {loading ? <LoadingSpinner language={language} /> : (
+            {loading ? <LoadingSpinner language={language} translations={translations} /> : (
                 <div className="flex justify-center gap-4">
                     <button onClick={() => generateOutro(false)} className="bg-green-500 text-white px-6 py-3 rounded-full hover:bg-green-600 text-lg">
                         {t.endItHere}
@@ -616,7 +616,7 @@ function SavedStoriesScreen({ supabaseUrl, supabaseAnonKey, setStep, language })
     fetchStories();
   }, []);
 
-  if (loading) return <LoadingSpinner language={language} />;
+  if (loading) return <LoadingSpinner language={language} translations={translations} />;
   
   if (error) {
     return (
@@ -780,7 +780,7 @@ export default function App() {
       <LanguageSelector currentLanguage={language} onLanguageChange={handleLanguageChange} />
       {isTranslating && (
         <div className="absolute inset-0 bg-white bg-opacity-80 flex justify-center items-center z-50">
-          <LoadingSpinner language={language} />
+          <LoadingSpinner language={language} translations={translations} />
         </div>
       )}
       {languageConfirmation && (
