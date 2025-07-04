@@ -1,0 +1,34 @@
+[
+  {
+    "name": "Finn",
+    "emoji": "🧑‍🔬",
+    "descriptions": {
+      "English": "Finn –the quick-witted explorer. Finn is curious, clever, and loves solving puzzles. He always carries a little notebook to collect clues.",
+      "German": "Finn – der flinke Forscher. Finn ist neugierig, schlau und liebt es, Rätsel zu lösen. Er hat immer ein kleines Notizbuch dabei, in dem er Hinweise sammelt."
+    }
+  },
+  {
+    "name": "Lucy",
+    "emoji": "🎨",
+    "descriptions": {
+      "English": "Lucy – the creative craft master. Lucy is great with her hands! She makes disguises from packaging, builds bridges from cotton swabs, and can turn three tomatoes into a climbing frame.",
+      "German": "Lucy – die kreative Bastelmeisterin. Lucy ist super mit ihren Händen! Sie bastelt Tarnungen aus Verpackungen, baut Brücken aus Wattestäbchen und kann aus drei Tomaten ein Klettergerüst zaubern."
+    }
+  },
+  {
+    "name": "Eli",
+    "emoji": "🧹",
+    "descriptions": {
+      "English": "Eli – the speedy tidying fairy. Eli loves order! She knows every corner of Migros and zips around with her mini-broom. If there's a mess in the vegetable aisle, Eli cleans it up before anyone notices.",
+      "German": "Eli – die flitzige Aufräumfee. Eli liebt Ordnung! Sie kennt jede Ecke der Migros und flitzt blitzschnell mit ihrem Mini-Besen herum. Wenn es ein Chaos im Gemüseregal gibt – Eli räumt es auf, bevor jemand etwas merkt."
+    }
+  },
+  {
+    "name": "Tom",
+    "emoji": "💪",
+    "descriptions": {
+      "English": "Tom – the strong stacker. Tom is as strong as ten toothpick soldiers! He can lift boxes, roll cans, and move heavy doors.",
+      "German": "Tom – der starke Stapler. Tom ist stark wie zehn Zahnstochersoldaten! Er kann Kartons heben, Dosen rollen und schwere Türen bewegen."
+    }
+  }
+] 

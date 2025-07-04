@@ -2,112 +2,6 @@ import React, { useState, useEffect } from "react";
 import { ChevronDown, ChevronRight, ChevronLeft } from "lucide-react";
 import { createClient } from '@supabase/supabase-js';
 
-const elfOptions = [
-  {
-    name: "Finn",
-    emoji: "🧑‍🔬",
-    descriptions: {
-      English: "Finn the quick-witted explorer. Finn is curious, clever, and loves solving puzzles. He always carries a little notebook to collect clues.",
-      German: "Finn der flinke Forscher. Finn ist neugierig, schlau und liebt es, Rätsel zu lösen. Er hat immer ein kleines Notizbuch dabei, in dem er Hinweise sammelt."
-    }
-  },
-  {
-    name: "Lucy",
-    emoji: "🎨",
-    descriptions: {
-      English: "Lucy the creative craft master. Lucy is great with her hands! She makes disguises from packaging, builds bridges from cotton swabs, and can turn three tomatoes into a climbing frame.",
-      German: "Lucy die kreative Bastelmeisterin. Lucy ist super mit ihren Händen! Sie bastelt Tarnungen aus Verpackungen, baut Brücken aus Wattestäbchen und kann aus drei Tomaten ein Klettergerüst zaubern."
-    }
-  },
-  {
-    name: "Eli",
-    emoji: "🧹",
-    descriptions: {
-      English: "Eli the speedy tidying fairy. Eli loves order! She knows every corner of Migros and zips around with her mini-broom. If there's a mess in the vegetable aisle, Eli cleans it up before anyone notices.",
-      German: "Eli die flitzige Aufräumfee. Eli liebt Ordnung! Sie kennt jede Ecke der Migros und flitzt blitzschnell mit ihrem Mini-Besen herum. Wenn es ein Chaos im Gemüseregal gibt – Eli räumt es auf, bevor jemand etwas merkt."
-    }
-  },
-  {
-    name: "Tom",
-    emoji: "💪",
-    descriptions: {
-      English: "Tom the strong stacker. Tom is as strong as ten toothpick soldiers! He can lift boxes, roll cans, and move heavy doors.",
-      German: "Tom der starke Stapler. Tom ist stark wie zehn Zahnstochersoldaten! Er kann Kartons heben, Dosen rollen und schwere Türen bewegen."
-    }
-  }
-];
-
-const translations = {
-  "English": {
-    welcome: "Welcome, Storyteller!",
-    enterApiKey: "Please enter your OpenAI API key to begin our adventure.",
-    enterSupabaseUrl: "Enter your Supabase URL",
-    enterSupabaseAnonKey: "Enter your Supabase Anon Key",
-    saveSettings: "Save Settings",
-    letsGo: "Let's Go!",
-    beginAdventure: "Your elf adventure begins! 🧝‍♂️✨🍊",
-    chooseTheme: "Choose a theme for the story setting:",
-    showDifferentThemes: "Show me different themes!",
-    whichElves: "Now we have to decide which elves will take the main roles. Here are the four main elves – all live secretly in Migros and have special talents:",
-    chooseUpTo3: "You can choose up to 3. Here are your options:",
-    teamChosen: "Team Chosen! Let's Go!",
-    adventureBegins: "The Adventure Begins!",
-    readyToRoll: "Are you ready to roll out? 🐾",
-    letsRoll: "Let's roll!",
-    pupsGottaFly: "This pup's gotta fly!",
-    ruffRuffRescue: "Ready for a ruff-ruff rescue!",
-    greenMeansGo: "Green means go!",
-    adventureUnfolds: "The Adventure Unfolds...",
-    whatHappensNext: "What happens next?",
-    storyLongEnough: "I think the story is long enough, let's wrap it up!",
-    wrapItUp: "Time to wrap it up?",
-    finalTwist: "Or would you like one final twist?!",
-    endItHere: "Let's end it here.",
-    addFinalTwist: "Add a final twist!",
-    adventureEnds: "And so the adventure ends... 🌙",
-    createANewStory: "Create a new story!",
-    createThisStory: "Create this story!",
-    viewSavedStories: "View saved stories",
-    chooseOption: "What would you like to do?",
-    thinking: "Thinking of something magical...",
-    confirmLanguageSwitch: "Are you sure you want to switch the language to"
-  },
-  "German": {
-    welcome: "Willkommen, Geschichtenerzähler!",
-    enterApiKey: "Bitte gib deinen OpenAI API-Schlüssel ein, um unser Abenteuer zu beginnen.",
-    enterSupabaseUrl: "Gib deine Supabase-URL ein",
-    enterSupabaseAnonKey: "Gib deinen Supabase Anon Key ein",
-    saveSettings: "Einstellungen speichern",
-    letsGo: "Los geht's!",
-    beginAdventure: "Dein Wichtel Abenteuer beginnt! 🧝‍♂️✨🍊",
-    chooseTheme: "Wähle ein Thema für die Geschichte:",
-    showDifferentThemes: "Zeig mir andere Themen!",
-    whichElves: "Jetzt müssen wir entscheiden, welche Wichtel die Hauptrollen übernehmen sollen. Hier sind die vier Hauptwichtel – alle leben heimlich in der Migros und haben besondere Talente:",
-    chooseUpTo3: "Du kannst bis zu 3 auswählen. Hier sind deine Optionen:",
-    teamChosen: "Team ausgewählt! Los geht's!",
-    adventureBegins: "Das Abenteuer beginnt!",
-    readyToRoll: "Bist du bereit, loszulegen? 🐾",
-    letsRoll: "Auf die Plätze, fertig, los!",
-    pupsGottaFly: "Dieser Welpe muss fliegen!",
-    ruffRuffRescue: "Bereit für eine Ruff-Ruff-Rettung!",
-    greenMeansGo: "Grün heißt Go!",
-    adventureUnfolds: "Das Abenteuer entfaltet sich...",
-    whatHappensNext: "Was passiert als Nächstes?",
-    storyLongEnough: "Ich glaube, die Geschichte ist lang genug, lass uns zum Ende kommen!",
-    wrapItUp: "Zeit, es abzuschließen?",
-    finalTwist: "Oder möchtest du eine letzte Wendung?!",
-    endItHere: "Lass es uns hier beenden.",
-    addFinalTwist: "Füge eine letzte Wendung hinzu!",
-    adventureEnds: "Und so endet das Abenteuer... 🌙",
-    createANewStory: "Erstelle eine neue Geschichte!",
-    createThisStory: "Erstelle diese Geschichte!",
-    viewSavedStories: "Gespeicherte Geschichten ansehen",
-    chooseOption: "Was möchtest du tun?",
-    thinking: "Denke mir etwas Magisches aus...",
-    confirmLanguageSwitch: "Bist du sicher, dass du die Sprache auf"
-  }
-};
-
 const LoadingSpinner = ({ language }) => (
   <div className="flex justify-center items-center p-4">
     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
@@ -138,7 +32,6 @@ function SetupScreen({ onSettingsSubmit, language }) {
   const [supabaseUrl, setSupabaseUrl] = useState("");
   const [supabaseAnonKey, setSupabaseAnonKey] = useState("");
   const t = translations[language];
-
   const handleSubmit = () => {
     onSettingsSubmit({
       apiKey,
@@ -146,7 +39,6 @@ function SetupScreen({ onSettingsSubmit, language }) {
       supabaseAnonKey,
     });
   };
-
   return (
     <div className="text-center max-w-md mx-auto">
       <h1 className="text-3xl font-bold mb-4 text-white">{t.welcome}</h1>
@@ -175,7 +67,6 @@ function SetupScreen({ onSettingsSubmit, language }) {
         onChange={(e) => setSupabaseAnonKey(e.target.value)}
       />
       <button
-        //className="bg-[#ffb380] text-white px-6 py-2 rounded-full hover:bg-[#ff6600] disabled:bg-gray-400"
         className={
             `px-8 py-3 rounded-lg text-xl border-2 transition mt-6 ` +
             (apiKey.length === 0
@@ -224,7 +115,6 @@ function ThemeSelectionScreen({ apiKey, setSelectedTheme, setStep, language }) {
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const t = translations[language];
-
   const generateThemes = async () => {
     setLoading(true);
     try {
@@ -238,19 +128,15 @@ function ThemeSelectionScreen({ apiKey, setSelectedTheme, setStep, language }) {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     generateThemes();
-    // eslint-disable-next-line
   }, [language]);
-
   const handlePrev = () => {
     setCurrentIndex((prev) => (prev === 0 ? themes.length - 1 : prev - 1));
   };
   const handleNext = () => {
     setCurrentIndex((prev) => (prev === themes.length - 1 ? 0 : prev + 1));
   };
-
   return (
     <div className="text-center max-w-2xl mx-auto">
       <h1 className="text-3xl font-bold mb-2 text-white">{t.beginAdventure}</h1>
@@ -316,7 +202,6 @@ function ThemeSelectionScreen({ apiKey, setSelectedTheme, setStep, language }) {
 function ElveSelectionScreen({ setSelectedElves, setStep, language }) {
   const [localSelectedElves, setLocalSelectedElves] = useState([]);
   const t = translations[language];
-
   const toggleElve = (elveName) => {
     setLocalSelectedElves((prev) => {
       if (prev.includes(elveName)) {
@@ -325,10 +210,9 @@ function ElveSelectionScreen({ setSelectedElves, setStep, language }) {
       if (prev.length < 4) {
         return [...prev, elveName];
       }
-      return prev; // Max 4 elves
+      return prev;
     });
   };
-
   return (
     <div className="text-center max-w-2xl mx-auto">
       <h1 className="text-3xl font-bold mb-2 text-white">{t.whichElves}</h1>
@@ -345,7 +229,7 @@ function ElveSelectionScreen({ setSelectedElves, setStep, language }) {
             }`}
           >
             <div className="font-bold text-xl mb-2 w-full text-center">{elf.name} {elf.emoji}</div>
-            <div className="text-sm w-full text-left">{elf.descriptions[language]}</div>
+            <div className="text-sm w-full text-center">{elf.descriptions[language]}</div>
           </button>
         ))}
       </div>
@@ -379,7 +263,7 @@ function IntroScreen({ apiKey, theme, pups, story, setStory, setStep, language }
       The elves' stories always take place in and around the supermarket. They encounter everyday situations there, where they secretly help people or solve problems in their own elf-sized world. It's important that they live unseen in the store — and must never be noticed or spotted by humans.
       **Instructions:**
       1. Start with a exciting, interesting hook to start the mission.
-      2. Write multiple paragraph as a setup for the mission, with occasionally funny moments.
+      2. Write multiple paragraph as a setup for the mission, with occasionally funny moments. Enhance with emojis!
       **Output:** A single JSON object with an "intro" key containing the story text.`;
       try {
         const data = await callOpenAI(apiKey, prompt);
@@ -387,12 +271,10 @@ function IntroScreen({ apiKey, theme, pups, story, setStory, setStep, language }
         setStep("STORY_WRITING");
       } catch (e) {
         console.error(e.message);
-        // Optionally, handle error by going back or allowing a retry
       }
     };
     generateIntro();
   }, []);
-
   return (
     <div className="max-w-3xl mx-auto">
       <LoadingSpinner language={language} />
@@ -405,9 +287,7 @@ function StoryWritingScreen({ apiKey, theme, pups, story, setStory, setStep, lan
     const [loading, setLoading] = useState(true);
     const [loadingNextBeat, setLoadingNextBeat] = useState(false);
     const t = translations[language];
-
     const getStoryContext = () => story.intro + '\n\n' + story.beats.map((b) => b.content).join('\n\n');
-
     const generateOptions = async () => {
         setLoading(true);
         const prompt = `Based on the story so far, provide 3 exciting and logical next-move options for the Migros Wichtel. Keep them short and action-oriented. The response should be in ${language}.
@@ -422,10 +302,9 @@ function StoryWritingScreen({ apiKey, theme, pups, story, setStory, setStep, lan
             setLoading(false);
         }
     };
-
     const generateNextBeat = async (choice) => {
         setLoadingNextBeat(true);
-        const prompt = `The user chose: "${choice}". Write the next part of the story in ${language} in rich, multi-paragraph detail. Include fun dialogue and action.
+        const prompt = `The user chose: "${choice}". Write the next part of the story in ${language} in rich, multi-paragraph detail. Include fun dialogue, action and emojis.
         **Story so far:**\n${getStoryContext()}
         **Output:** A JSON object with two keys: "title" (a short, creative title for this new part of the story) and "content" (the new story text).`;
         try {
@@ -437,27 +316,22 @@ function StoryWritingScreen({ apiKey, theme, pups, story, setStory, setStep, lan
             setLoadingNextBeat(false);
         }
     };
-
     useEffect(() => {
         if (story.beats.length === 0) {
             generateOptions();
         } else {
-            // After a new beat is added, generate the next set of options
             generateOptions();
         }
     }, [story.beats.length, language]);
-
     const handleOptionClick = async (option) => {
         setOptions([]);
         await generateNextBeat(option);
     };
-
     return (
         <div className="max-w-3xl mx-auto">
             <div className="bg-black p-8 rounded-lg shadow-lg">
                 <h1 className="text-3xl font-bold mb-1 text-center text-white">{theme.title}</h1>
                 <p className="text-lg text-gray-300 mb-6 text-center">{theme.description}</p>
-
                 <div className="whitespace-pre-line text-gray-200 leading-relaxed mb-6">
                     <h2 className="text-xl font-bold mb-2 border-b pb-2 text-white border-gray-500">Part 1: The Mission Begins</h2>
                     <p>{story.intro}</p>
@@ -468,9 +342,7 @@ function StoryWritingScreen({ apiKey, theme, pups, story, setStory, setStep, lan
                         </div>
                     ))}
                 </div>
-
                 {loadingNextBeat && <LoadingSpinner language={language} />}
-                
                 {!loadingNextBeat && (
                     <div className="text-center mt-8">
                         {loading ? <LoadingSpinner language={language} /> : (
@@ -481,7 +353,7 @@ function StoryWritingScreen({ apiKey, theme, pups, story, setStory, setStep, lan
             <button
                                             key={i}
                                             onClick={() => handleOptionClick(option)}
-                                            className="w-full px-8 py-4 border-2 rounded-lg text-base bg-white text-[#ff6600] border-[#ff6600] hover:bg-[#ff6600] hover:text-white hover:border-[#ff6600] active:bg-[#ff6600] active:text-white active:border-[#ff6600]"
+                                            className="w-full px-8 py-4 rounded-lg border-2 text-base bg-white text-[#ff6600] border-[#ff6600] hover:bg-[#ff6600] hover:text-white hover:border-[#ff6600] active:bg-[#ff6600] active:text-white active:border-[#ff6600]"
                                         >
                                             {option}
             </button>
@@ -509,12 +381,10 @@ function OutroScreen({ apiKey, theme, pups, story, onRestart, language, supabase
     const [saveSuccess, setSaveSuccess] = useState(false);
     const [error, setError] = useState(null);
     const t = translations[language];
-
     const getStoryContext = () => {
         const beatsText = story.beats.map((b) => b.content).join("\n\n");
         return story.intro + "\n\n" + beatsText;
     };
-
     const generateOutro = async (withTwist) => {
         setLoading(true);
         let prompt = `Write a warm, cozy conclusion in ${language} to the adventure. Show the team coming together, celebrating their success. Perfect for a bedtime wind-down.\n**Story so far:**\n${getStoryContext()}`;
@@ -531,7 +401,6 @@ function OutroScreen({ apiKey, theme, pups, story, onRestart, language, supabase
             setLoading(false);
         }
     }
-
     const handleSaveStory = async () => {
         setSaving(true);
         setSaveSuccess(false);
@@ -546,17 +415,14 @@ function OutroScreen({ apiKey, theme, pups, story, onRestart, language, supabase
                     `The End: ${outro.title}\n${outro.content}`
                 ].join("\n\n")
             };
-
             const supabase = createClient(supabaseUrl, supabaseAnonKey);
             const { data, error } = await supabase
                 .from('story')
                 .insert([storyData])
                 .select();
-
             if (error) {
                 throw new Error(`Failed to save story: ${error.message}`);
             }
-
             console.log('Save response:', data);
             setSaveSuccess(true);
         } catch (e) {
@@ -566,7 +432,6 @@ function OutroScreen({ apiKey, theme, pups, story, onRestart, language, supabase
             setSaving(false);
         }
     };
-
     if (outro) {
         return (
             <div className="max-w-3xl mx-auto bg-black p-8 rounded-lg shadow-lg">
@@ -597,7 +462,6 @@ function OutroScreen({ apiKey, theme, pups, story, onRestart, language, supabase
             </div>
         )
     }
-
     return (
         <div className="max-w-xl mx-auto text-center">
             <h1 className="text-3xl font-bold mb-4 text-white">{t.wrapItUp}</h1>
@@ -622,7 +486,6 @@ function SavedStoriesScreen({ supabaseUrl, supabaseAnonKey, setStep, language })
   const [selectedStory, setSelectedStory] = useState(null);
   const [error, setError] = useState(null);
   const t = translations[language];
-
   useEffect(() => {
     const fetchStories = async () => {
       setLoading(true);
@@ -746,6 +609,42 @@ export default function App() {
   const [language, setLanguage] = useState("English");
   const [isTranslating, setIsTranslating] = useState(false);
   const [languageConfirmation, setLanguageConfirmation] = useState(null);
+  const [elfOptions, setElfOptions] = useState([]);
+  const [translations, setTranslations] = useState({});
+  const [dataLoading, setDataLoading] = useState(true);
+  const [dataError, setDataError] = useState(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      setDataLoading(true);
+      setDataError(null);
+      try {
+        const [elfRes, transRes] = await Promise.all([
+          fetch('./elfOptions.json'),
+          fetch('./translations.json')
+        ]);
+        if (!elfRes.ok || !transRes.ok) throw new Error('Failed to load data files');
+        const [elfData, transData] = await Promise.all([
+          elfRes.json(),
+          transRes.json()
+        ]);
+        setElfOptions(elfData);
+        setTranslations(transData);
+      } catch (e) {
+        setDataError(e.message);
+      } finally {
+        setDataLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  if (dataLoading) {
+    return <div className="flex justify-center items-center h-screen"><span>Loading data...</span></div>;
+  }
+  if (dataError) {
+    return <div className="flex justify-center items-center h-screen text-red-500">Error: {dataError}</div>;
+  }
 
   const handleSetApiKey = ({ apiKey, supabaseUrl, supabaseAnonKey }) => {
     setApiKey(apiKey);
@@ -770,7 +669,7 @@ export default function App() {
   const executeLanguageChange = async () => {
     if (!languageConfirmation) return;
     const newLanguage = languageConfirmation;
-    setLanguageConfirmation(null); // Hide modal
+    setLanguageConfirmation(null);
     setIsTranslating(true);
     try {
       const translateJsonObject = async (obj, keys, lang) => {
@@ -783,22 +682,17 @@ export default function App() {
         `;
         return await callOpenAI(apiKey, prompt);
       };
-
       const translateString = async (text, lang) => {
         if (!text) return "";
         const prompt = `You are a professional translator. Translate the following text to ${lang}. Crucially, you must preserve the original paragraph structure and newlines (\\n) in the translated text. Return a single JSON object with one key, "translation", containing only the translated text.
           Text to translate:
           "${text}"`;
         const result = await callOpenAI(apiKey, prompt);
-        return result.translation || text; // Return original text if translation fails
+        return result.translation || text;
       };
-
-      // Perform all translations first
       const translatedTheme = await translateJsonObject(theme, ["title", "description"], newLanguage);
       const translatedIntro = await translateString(story.intro, newLanguage);
       const translatedBeats = await Promise.all(story.beats.map((beat) => translateJsonObject(beat, ["title", "content"], newLanguage)));
-
-      // Then, update all state at once
       setTheme(translatedTheme);
       setStory({ intro: translatedIntro, beats: translatedBeats });
       setLanguage(newLanguage);
@@ -808,7 +702,6 @@ export default function App() {
       setIsTranslating(false);
     }
   };
-
   const screens = {
     API_KEY: <SetupScreen onSettingsSubmit={handleSetApiKey} language={language} />,
     MAIN_MENU: <MainMenuScreen setStep={setStep} language={language} />,
