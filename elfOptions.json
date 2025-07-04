@@ -3,32 +3,56 @@
     "name": "Finn",
     "emoji": "🧑‍🔬",
     "descriptions": {
-      "English": "Finn –the quick-witted explorer. Finn is curious, clever, and loves solving puzzles. He always carries a little notebook to collect clues.",
-      "German": "Finn – der flinke Forscher. Finn ist neugierig, schlau und liebt es, Rätsel zu lösen. Er hat immer ein kleines Notizbuch dabei, in dem er Hinweise sammelt."
+      "English": "Respectful, empathetic, and a quick thinker. He loves tinkering with electronic and digital devices. He speaks quickly and with enthusiasm.",
+      "German": "Respektvoll, einfühlsam und ein schneller Denker. Er liebt es, mit elektronischen und digitalen Geräten zu basteln. Er spricht schnell und mit Elan."
     }
   },
   {
     "name": "Lucy",
     "emoji": "🎨",
     "descriptions": {
-      "English": "Lucy – the creative craft master. Lucy is great with her hands! She makes disguises from packaging, builds bridges from cotton swabs, and can turn three tomatoes into a climbing frame.",
-      "German": "Lucy – die kreative Bastelmeisterin. Lucy ist super mit ihren Händen! Sie bastelt Tarnungen aus Verpackungen, baut Brücken aus Wattestäbchen und kann aus drei Tomaten ein Klettergerüst zaubern."
+      "English": "Cute, pragmatic, and charming. She has a healthy sense of self-worth and a vivid imagination.",
+      "German": "Niedlich, pragmatisch und charmant. Sie hat ein gesundes Selbstwertgefühl und viel Fantasie."
     }
   },
   {
     "name": "Eli",
-    "emoji": "🧹",
+    "emoji": " 🐾",
     "descriptions": {
-      "English": "Eli – the speedy tidying fairy. Eli loves order! She knows every corner of Migros and zips around with her mini-broom. If there's a mess in the vegetable aisle, Eli cleans it up before anyone notices.",
-      "German": "Eli – die flitzige Aufräumfee. Eli liebt Ordnung! Sie kennt jede Ecke der Migros und flitzt blitzschnell mit ihrem Mini-Besen herum. Wenn es ein Chaos im Gemüseregal gibt – Eli räumt es auf, bevor jemand etwas merkt."
+      "English": "Shy, cheerful, and fond of animals. She enjoys spending time in the pet supplies section and often worries.",
+      "German": "Schüchtern, fröhlich und tierlieb. Sie hält sich gerne in der Tierbedarf-Abteilung auf und macht sich oft Sorgen."
     }
   },
   {
     "name": "Tom",
     "emoji": "💪",
     "descriptions": {
-      "English": "Tom – the strong stacker. Tom is as strong as ten toothpick soldiers! He can lift boxes, roll cans, and move heavy doors.",
-      "German": "Tom – der starke Stapler. Tom ist stark wie zehn Zahnstochersoldaten! Er kann Kartons heben, Dosen rollen und schwere Türen bewegen."
+      "English": "Confident, exceptionally strong, and helpful. He pitches in wherever needed and is always ready to lend a hand.",
+      "German": "Selbstbewusst, überdurchschnittlich stark und hilfsbereit. Er packt überall mit an und ist immer bereit, zu helfen."
+    }
+  },
+  {
+    "name": "Lino",
+    "emoji": "🧑‍🏫",
+    "descriptions": {
+      "English": "Pragmatic and the second-oldest elf. He loves putting plans into action but has little imagination. His mustache often tickles his nose, making him sneeze.",
+      "German": "Pragmatisch und der zweitälteste Wichtel. Er liebt es, Pläne umzusetzen, hat aber wenig Fantasie. Sein Schnurrbart kitzelt ihn oft an der Nase, was ihn niesen lässt."
+    }
+  },
+  {
+    "name": "Nino",
+    "emoji": "🧠",
+    "descriptions": {
+      "English": "Reserved and forgetful. He speaks slowly, sometimes repeating words or phrases, and prefers to stay in the background.",
+      "German": "Zurückhaltend und vergesslich. Er spricht langsam, wiederholt manchmal Wörter oder Satzteile und hält sich lieber im Hintergrund."
+    }
+  },
+  {
+    "name": "Matus",
+    "emoji": "🧙‍♂️",
+    "descriptions": {
+      "English": "The oldest elf with a long white beard. He’s fascinated by magic tricks, even though elves can’t perform magic. He’s sometimes forgetful, which the other elves lovingly chuckle at.",
+      "German": "Der älteste Wichtel mit einem langen, weissen Bart. Er ist fasziniert von Zaubertricks, obwohl Wichtel nicht zaubern können. Er ist manchmal vergesslich, was die anderen Wichtel liebevoll belächeln."
     }
   }
 ] 

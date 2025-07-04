@@ -620,8 +620,8 @@ export default function App() {
       setDataError(null);
       try {
         const [elfRes, transRes] = await Promise.all([
-          fetch('./elfOptions.json'),
-          fetch('./translations.json')
+          fetch('https://raw.githubusercontent.com/hansgnom/kids-story-generator/main/elfOptions.json'),
+          fetch('https://raw.githubusercontent.com/hansgnom/kids-story-generator/main/translations.json')
         ]);
         if (!elfRes.ok || !transRes.ok) throw new Error('Failed to load data files');
         const [elfData, transData] = await Promise.all([
