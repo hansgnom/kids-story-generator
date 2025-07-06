@@ -160,9 +160,9 @@ function ThemeSelectionScreen({ apiKey, setSelectedTheme, setStep, language, tra
                   <ChevronLeft size={28} />
                 </button>
                 <div className="flex-1 min-w-0">
-                  <div className="p-4 border rounded-lg shadow-sm bg-white hover:bg-white transition text-left min-w-[250px] max-w-md mx-auto">
+                  <div className="p-4 border-2 text-white border-[#333335] shadow-sm bg-[#333335] hover:bg-[#142138] transition text-left min-w-[250px] max-w-md mx-auto">
                     <h2 className="font-bold text-lg mb-1">{themes[currentIndex].title}</h2>
-                    <p className="text-sm text-gray-600">{themes[currentIndex].description}</p>
+                    <p className="text-sm text-white">{themes[currentIndex].description}</p>
                   </div>
                 </div>
                 <button
@@ -225,10 +225,10 @@ function ElveSelectionScreen({ setSelectedElves, setStep, language, elfOptions, 
           <button
             key={elf.name}
             onClick={() => toggleElve(elf.name)}
-            className={`p-4 rounded-lg text-lg border-2 transition text-left justify-center items-start shadow-sm ${
+            className={`p-4 border-2 transition text-left text-white justify-center items-start shadow-sm ${
               localSelectedElves.includes(elf.name)
-                ? "bg-[#ff6600] text-white border-[#ff6600]"
-                : "bg-white hover:bg-orange-100 border-gray-300"
+                ? "bg-[#142138] text-white border-[#C6D8E8]"
+                : "bg-[#333335] hover:bg-[#142138] border-[#333335]"
             }`}
           >
             <div className="font-bold text-xl mb-2 w-full text-center">{elf.name} {elf.emoji}</div>
@@ -360,22 +360,22 @@ function StoryWritingScreen({ apiKey, theme, pups, story, setStory, setStep, lan
                         {loading ? <LoadingSpinner language={language} translations={translations} /> : (
                             <>
                                 <h2 className="text-2xl font-bold mb-4 text-white">{t.whatHappensNext}</h2>
-                                <div className="grid grid-cols-1 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     {options.map((option, i) => (
-            <button
-                                            key={i}
-                                            onClick={() => handleOptionClick(option)}
-                                            className="w-full px-8 py-4 rounded-lg border-2 text-base bg-white text-[#ff6600] border-[#ff6600] hover:bg-[#ff6600] hover:text-white hover:border-[#ff6600] active:bg-[#ff6600] active:text-white active:border-[#ff6600]"
+                                      <button
+                                        key={i}
+                                        onClick={() => handleOptionClick(option)}
+                                        className="py-4 px-4 border-2 transition text-left text-white justify-center items-start shadow-sm bg-[#333335] border-[#333335] hover:bg-[#142138] hover:border-[#333335] active:bg-[#142138] active:text-white active:border-[#C6D8E8]"
                                         >
-                                            {option}
-            </button>
+                                        {option}
+                                      </button>
                                     ))}
-            <button
-                                        onClick={() => setStep("OUTRO")}
-                                        className="w-full bg-gray-500 text-white p-3 rounded-lg hover:bg-gray-600 mt-4"
-                                    >
-                                        {t.storyLongEnough}
-            </button>
+                                    <button
+                                      onClick={() => setStep("OUTRO")}
+                                      className="py-4 px-4 border-2 transition text-left text-white justify-center items-start shadow-sm bg-gray-500 p-3 hover:bg-gray-600 mt-4"
+                                      >
+                                      {t.storyLongEnough}
+                                    </button>
           </div>
                             </>
                         )}
@@ -741,7 +741,7 @@ export default function App() {
   };
 
   return (
-    <div className="bg-black min-h-screen font-sans flex items-center justify-center p-4 relative">
+    <div className="bg-black min-h-screen font-sans relative border-[12px] border-white overflow-hidden">
       <LanguageSelector currentLanguage={language} onLanguageChange={handleLanguageChange} />
       {isTranslating && (
         <div className="absolute inset-0 bg-white bg-opacity-80 flex justify-center items-center z-50">
@@ -755,7 +755,10 @@ export default function App() {
           onCancel={() => setLanguageConfirmation(null)}
         />
       )}
-      <div className="w-full">{screens[step]}</div>
+      {/* Triangle element */}
+      <div class="absolute left-1/2 -translate-x-1/2 border-l-[50px] border-r-[50px] border-t-[100px] border-l-transparent border-r-transparent border-t-white transform translate-x-[-50%] translate-y-[-50%]"></div>
+      <img src="https://pbs.twimg.com/ext_tw_video_thumb/1738137521400193024/pu/img/PV2KgYXWy_2QsC9v.jpg" alt="Decorative Image" class="absolute bottom-[-25px] left-[0px] h-[200px] z-10" />
+      <div class="w-full pt-[80px] px-4 pb-4">{screens[step]}</div>
     </div>
   );
 }
