@@ -45,7 +45,7 @@ function SetupScreen({ onSettingsSubmit, language, translations }) {
       <p className="mb-2 text-white">{t.enterApiKey}</p>
       <input
         type="password"
-        className="w-full px-3 py-2 border rounded shadow-sm mb-4"
+        className="w-[200px] px-3 py-2 border rounded shadow-sm mb-4 text-[8px]"
         placeholder="Enter your API key"
         value={apiKey}
         onChange={(e) => setApiKey(e.target.value)}
@@ -53,7 +53,7 @@ function SetupScreen({ onSettingsSubmit, language, translations }) {
       <p className="mb-2 mt-4 text-white">{t.enterSupabaseUrl}</p>
       <input
         type="text"
-        className="w-full px-3 py-2 border rounded shadow-sm mb-4"
+        className="w-[200px] px-3 py-2 border rounded shadow-sm mb-4 text-[8px]"
         placeholder="Enter your Supabase URL"
         value={supabaseUrl}
         onChange={(e) => setSupabaseUrl(e.target.value)}
@@ -61,7 +61,7 @@ function SetupScreen({ onSettingsSubmit, language, translations }) {
       <p className="mb-2 text-white">{t.enterSupabaseAnonKey}</p>
       <input
         type="password"
-        className="w-full px-3 py-2 border rounded shadow-sm mb-4"
+        className="w-[200px] px-3 py-2 border rounded shadow-sm mb-4 text-[8px]"
         placeholder="Enter your Supabase Anon Key"
         value={supabaseAnonKey}
         onChange={(e) => setSupabaseAnonKey(e.target.value)}
@@ -629,7 +629,7 @@ export default function App() {
   const [theme, setTheme] = useState(null);
   const [pups, setPups] = useState([]);
   const [story, setStory] = useState({ intro: "", beats: [] });
-  const [language, setLanguage] = useState("English");
+  const [language, setLanguage] = useState("German");
   const [isTranslating, setIsTranslating] = useState(false);
   const [languageConfirmation, setLanguageConfirmation] = useState(null);
   const [elfOptions, setElfOptions] = useState([]);
