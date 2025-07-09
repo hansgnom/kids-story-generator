@@ -109,7 +109,7 @@ function MainMenuScreen({ setStep, language, translations }) {
 function ThemeSelectionScreen({ apiKey, setSelectedTheme, setStep, language, translations, promptData }) {
   const [themes, setThemes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [localSelectedTheme, setLocalSelectedTheme] = useState(null);
   const t = translations[language];
   const generateThemes = async () => {
     setLoading(true);
@@ -124,7 +124,6 @@ function ThemeSelectionScreen({ apiKey, setSelectedTheme, setStep, language, tra
 
       const data = await callOpenAI(apiKey, themePrompt);
       setThemes(data.themes || []);
-      setCurrentIndex(0);
     } catch (error) {
       console.error(`Error generating themes: ${error.message}`);
     } finally {
@@ -134,11 +133,8 @@ function ThemeSelectionScreen({ apiKey, setSelectedTheme, setStep, language, tra
   useEffect(() => {
     generateThemes();
   }, [language]);
-  const handlePrev = () => {
-    setCurrentIndex((prev) => (prev === 0 ? themes.length - 1 : prev - 1));
-  };
-  const handleNext = () => {
-    setCurrentIndex((prev) => (prev === themes.length - 1 ? 0 : prev + 1));
+  const handleThemeSelect = (themeOption) => {
+    setLocalSelectedTheme(themeOption);
   };
   return (
     <div className="text-center max-w-2xl mx-auto">
@@ -149,51 +145,42 @@ function ThemeSelectionScreen({ apiKey, setSelectedTheme, setStep, language, tra
       ) : (
         <>
           {themes.length > 0 && (
-            <div className="flex flex-col items-center">
-              <div className="flex items-center justify-center w-full mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {themes.map((themeOption) => (
                 <button
-                  aria-label="Previous theme"
-                  onClick={handlePrev}
-                  className="p-2 rounded-full bg-[#ffb380] text-white hover:bg-[#ff6600] mr-4 disabled:opacity-50"
-                  disabled={themes.length <= 1}
+                  key={themeOption.title}
+                  onClick={() => handleThemeSelect(themeOption)}
+                  className={`p-4 border-2 transition text-left text-white justify-center items-start shadow-sm ${
+                    localSelectedTheme && localSelectedTheme.title === themeOption.title
+                      ? "bg-[#142138] text-white border-[#C6D8E8]"
+                      : "bg-[#333335] hover:bg-[#142138] border-[#333335]"
+                  }`}
                 >
-                  <ChevronLeft size={28} />
+                  <div className="font-bold text-xl mb-2 w-full text-center">{themeOption.title}</div>
+                  <div className="text-sm w-full text-center">{themeOption.description}</div>
                 </button>
-                <div className="flex-1 min-w-0">
-                  <div className="p-4 border-2 text-white border-[#333335] shadow-sm bg-[#333335] hover:bg-[#142138] transition text-left min-w-[250px] max-w-md mx-auto">
-                    <h2 className="font-bold text-lg mb-1">{themes[currentIndex].title}</h2>
-                    <p className="text-sm text-white">{themes[currentIndex].description}</p>
-                  </div>
-                </div>
-                <button
-                  aria-label="Next theme"
-                  onClick={handleNext}
-                  className="p-2 rounded-full bg-[#ffb380] text-white hover:bg-[#ff6600] ml-4 disabled:opacity-50"
-                  disabled={themes.length <= 1}
-                >
-                  <ChevronRight size={28} />
-                </button>
-              </div>
-              <div className="text-xs text-gray-400 mt-2">
-                {themes.length > 1 && `${currentIndex + 1} / ${themes.length}`}
-              </div>
-              <div className="flex flex-col items-center gap-2 mt-2">
-                <button
-                  className="bg-[#ff6600] text-white px-8 py-4 rounded-lg hover:bg-[#ff6600] text-xl"
-                  onClick={() => {
-                    setSelectedTheme(themes[currentIndex]);
-                    setStep("PUP_SELECTION");
-                  }}
-                >
-                  {t.createThisStory}
-                </button>
-                <button
-                  onClick={generateThemes}
-                  className="px-8 py-4 rounded-lg border-2 text-xl bg-white text-[#ff6600] border-[#ff6600] hover:bg-[#ff6600] hover:text-white hover:border-[#ff6600] active:bg-[#ff6600] active:text-white active:border-[#ff6600]"
-                >
-                  {t.showDifferentThemes}
-                </button>
-              </div>
+              ))}
+              <button
+                className={
+                  `px-8 py-3 rounded-lg text-xl border-2 transition mt-6 ` +
+                  (!localSelectedTheme
+                    ? 'bg-gray-200 text-gray-500 border-gray-300 cursor-not-allowed'
+                    : 'bg-white text-[#ff6600] border-[#ff6600] hover:bg-[#ff6600] hover:text-white hover:border-[#ff6600] active:bg-[#ff6600] active:text-white active:border-[#ff6600]')
+                }
+                onClick={() => {
+                  setSelectedTheme(localSelectedTheme);
+                  setStep("PUP_SELECTION");
+                }}
+                disabled={!localSelectedTheme}
+              >
+                {t.createThisStory}
+              </button>
+              <button
+                onClick={generateThemes}
+                className="px-8 py-4 rounded-lg border-2 text-xl bg-white text-[#ff6600] border-[#ff6600] hover:bg-[#ff6600] hover:text-white hover:border-[#ff6600] active:bg-[#ff6600] active:text-white active:border-[#ff6600] mt-4"
+              >
+                {t.showDifferentThemes}
+              </button>
             </div>
           )}
         </>
@@ -258,19 +245,15 @@ function ElveSelectionScreen({ setSelectedElves, setStep, language, elfOptions, 
 function IntroScreen({ apiKey, theme, pups, story, setStory, setStep, language, translations, promptData }) {
   useEffect(() => {
     const generateIntro = async () => {
-      const role = promptData.migrosWichtelStoryPrompt.role;
-      const theme = promptData.migrosWichtelStoryPrompt.theme;
-      const elves = promptData.migrosWichtelStoryPrompt.elves;
+      const role = promptData.migrosWichtelStoryPrompt.role.replace('{language}', language);
+      const theme = promptData.migrosWichtelStoryPrompt.theme.replace('{theme.title}', theme.title).replace('{theme.description}', theme.description);
+      const elves = promptData.migrosWichtelStoryPrompt.elves.replace('{elves}', pups.join(", "));
       const expectation = promptData.migrosWichtelStoryPrompt.expectation;
       const context = promptData.migrosWichtelStoryPrompt.context;
       const tonalityStyle = promptData.migrosWichtelStoryPrompt.tonalityStyle;
       const additionalInfo = promptData.migrosWichtelStoryPrompt.additionalInfo;
       
-      const prompt = `${role}\n${theme}\n${elves}\n${expectation}\n${context}\n${tonalityStyle}\n${additionalInfo}\n${promptData.migrosWichtelStoryPrompt.introGeneration
-        .replace('{theme.title}', theme.title)
-        .replace('{theme.description}', theme.description)
-        .replace('{elves}', pups.join(", "))
-        .replace('{language}', language)}`;
+      const prompt = `${role}\n${theme}\n${elves}\n${expectation}\n${context}\n${tonalityStyle}\n${additionalInfo}\n${promptData.migrosWichtelStoryPrompt.introGeneration}`;
       console.log("Intro Generation Prompt: ");
       console.log(prompt);
       try {
@@ -341,7 +324,7 @@ function StoryWritingScreen({ apiKey, theme, pups, story, setStory, setStep, lan
     };
     return (
         <div className="max-w-3xl mx-auto">
-            <div className="bg-black p-8 rounded-lg shadow-lg">
+            <div className="p-8 rounded-lg shadow-lg">
                 <h1 className="text-3xl font-bold mb-1 text-center text-white">{theme.title}</h1>
                 <p className="text-lg text-gray-300 mb-6 text-center">{theme.description}</p>
                 <div className="whitespace-pre-line text-gray-200 leading-relaxed mb-6">
@@ -614,10 +597,13 @@ const ConfirmationModal = ({ message, onConfirm, onCancel }) => (
   </div>
 );
 
-const LanguageSelector = ({ currentLanguage, onLanguageChange }) => (
+const LanguageSelector = ({ currentLanguage, onLanguageChange, showDecorativeImage, onToggleImage }) => (
   <div className="absolute top-4 right-4 flex gap-2 z-10">
     <button onClick={() => onLanguageChange("English")} className={`px-3 py-1 rounded-full text-sm border-2 transition ${currentLanguage === 'English' ? 'bg-[#ffb380] text-white border-blue-500' : 'bg-white hover:bg-[#ffe9db] border-gray-300'}`}>🇬🇧</button>
     <button onClick={() => onLanguageChange("German")} className={`px-3 py-1 rounded-full text-sm border-2 transition ${currentLanguage === 'German' ? 'bg-[#ffb380] text-white border-blue-500' : 'bg-white hover:bg-[#ffe9db] border-gray-300'}`}>🇩🇪</button>
+    <button onClick={onToggleImage} className="px-3 py-1 rounded-full text-sm border-2 transition bg-white hover:bg-[#ffe9db] border-gray-300">
+      {showDecorativeImage ? '🙈' : '🐵'}
+    </button>
   </div>
 );
 
@@ -637,6 +623,7 @@ export default function App() {
   const [promptData, setPromptData] = useState({});
   const [dataLoading, setDataLoading] = useState(true);
   const [dataError, setDataError] = useState(null);
+  const [showDecorativeImage, setShowDecorativeImage] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
@@ -740,9 +727,43 @@ export default function App() {
     SAVED_STORIES: <SavedStoriesScreen supabaseUrl={supabaseUrl} supabaseAnonKey={supabaseAnonKey} setStep={setStep} language={language} translations={translations} />
   };
 
+  const toggleDecorativeImage = () => {
+    setShowDecorativeImage(prev => !prev);
+  };
+
   return (
-    <div className="bg-black min-h-screen font-sans relative border-[12px] border-white overflow-hidden">
-      <LanguageSelector currentLanguage={language} onLanguageChange={handleLanguageChange} />
+    <div className="min-h-screen font-sans relative border-[12px] border-white">
+      <style jsx>{`
+        @keyframes move-twink-back {
+          from { background-position: 0 0; }
+          to { background-position: -10000px 5000px; }
+        }
+
+        .stars, .twinkling {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          width: 100%;
+          height: 100%;
+          display: block;
+        }
+
+        .stars {
+          background: #000 url('https://raw.githubusercontent.com/Carla-Codes/starry-night-css-animation/master/stars.png') repeat top center;
+          z-index: -2;
+        }
+
+        .twinkling {
+          background: transparent url('https://raw.githubusercontent.com/Carla-Codes/starry-night-css-animation/master/twinkling.png') repeat;
+          z-index: -1;
+          animation: move-twink-back 200s linear infinite;
+        }
+      `}</style>
+      <div className="stars"></div>
+      <div className="twinkling"></div>
+      <LanguageSelector currentLanguage={language} onLanguageChange={handleLanguageChange} showDecorativeImage={showDecorativeImage} onToggleImage={toggleDecorativeImage} />
       {isTranslating && (
         <div className="absolute inset-0 bg-white bg-opacity-80 flex justify-center items-center z-50">
           <LoadingSpinner language={language} translations={translations} />
@@ -755,9 +776,10 @@ export default function App() {
           onCancel={() => setLanguageConfirmation(null)}
         />
       )}
+      
       {/* Triangle element */}
       <div class="absolute left-1/2 -translate-x-1/2 border-l-[50px] border-r-[50px] border-t-[100px] border-l-transparent border-r-transparent border-t-white transform translate-x-[-50%] translate-y-[-50%]"></div>
-      <img src="https://pbs.twimg.com/ext_tw_video_thumb/1738137521400193024/pu/img/PV2KgYXWy_2QsC9v.jpg" alt="Decorative Image" class="absolute bottom-[-25px] left-[0px] h-[200px] z-10" />
+      {showDecorativeImage && <img src="https://media.tenor.com/baUVsZ7ShisAAAAm/love-cute.webp" alt="Decorative Image" class="absolute bottom-[0px] left-[0px] h-[200px] z-10" />}
       <div class="w-full pt-[80px] px-4 pb-4">{screens[step]}</div>
     </div>
   );
