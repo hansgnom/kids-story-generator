@@ -189,7 +189,7 @@ function ThemeSelectionScreen({ apiKey, setSelectedTheme, setStep, language, tra
   );
 }
 
-function ElveSelectionScreen({ setSelectedElves, setStep, language, elfOptions, translations }) {
+function ElveSelectionScreen({ setSelectedElves, setStep, language, elfOptions, translations, theme }) {
   const [localSelectedElves, setLocalSelectedElves] = useState([]);
   const t = translations[language] || {};
   const toggleElve = (elveName) => {
@@ -205,7 +205,9 @@ function ElveSelectionScreen({ setSelectedElves, setStep, language, elfOptions, 
   };
   return (
     <div className="text-center max-w-2xl mx-auto">
-      <h1 className="text-3xl font-bold mb-2 text-white">{t.whichElves}</h1>
+      <h1 className="text-3xl font-bold mb-1 text-center text-white">{theme.title}</h1>
+      <p className="text-lg text-gray-300 mb-6 text-center">{theme.description}</p>
+      <h2 className="text-3xl font-bold mb-2 text-white">{t.whichElves}</h2>
       <p className="text-lg mb-6 text-white">{t.chooseUpTo4 || ""}</p>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {elfOptions.map((elf) => (
@@ -732,7 +734,7 @@ export default function App() {
     API_KEY: <SetupScreen onSettingsSubmit={handleSetApiKey} language={language} translations={translations} />,
     MAIN_MENU: <MainMenuScreen setStep={setStep} language={language} translations={translations} />,
     THEME_SELECTION: <ThemeSelectionScreen apiKey={apiKey} setSelectedTheme={setTheme} setStep={setStep} language={language} translations={translations} promptData={promptData} />,
-    PUP_SELECTION: <ElveSelectionScreen setSelectedElves={setPups} setStep={setStep} language={language} elfOptions={elfOptions} translations={translations} />,
+    PUP_SELECTION: <ElveSelectionScreen setSelectedElves={setPups} setStep={setStep} language={language} elfOptions={elfOptions} translations={translations} theme={theme} />,
     INTRO_GENERATION: <IntroScreen apiKey={apiKey} theme={theme} pups={pups} story={story} setStory={setStory} setStep={setStep} language={language} translations={translations} promptData={promptData} />,
     STORY_WRITING: <StoryWritingScreen apiKey={apiKey} theme={theme} pups={pups} story={story} setStory={setStory} setStep={setStep} language={language} translations={translations} promptData={promptData} />,
     OUTRO: <OutroScreen apiKey={apiKey} theme={theme} pups={pups} story={story} onRestart={handleRestart} language={language} supabaseUrl={supabaseUrl} supabaseAnonKey={supabaseAnonKey} translations={translations} promptData={promptData} />,
