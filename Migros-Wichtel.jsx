@@ -189,9 +189,31 @@ function ThemeSelectionScreen({ apiKey, setSelectedTheme, setStep, language, tra
   );
 }
 
-function ElveSelectionScreen({ setSelectedElves, setStep, language, elfOptions, translations, theme }) {
+function ElveSelectionScreen({ setSelectedElves, setStep, language, elfOptions, translations, theme, apiKey, promptData }) {
   const [localSelectedElves, setLocalSelectedElves] = useState([]);
+  const [dynamicElves, setDynamicElves] = useState([]);
+  const [loadingElves, setLoadingElves] = useState(true);
+  const [errorElves, setErrorElves] = useState(null);
   const t = translations[language] || {};
+
+  useEffect(() => {
+    const fetchElves = async () => {
+      setLoadingElves(true);
+      setErrorElves(null);
+      try {
+        const prompt = promptData.migrosWichtelStoryPrompt.elveSelectionGeneration;
+        const data = await callOpenAI(apiKey, prompt);
+        setDynamicElves(data.elves || []); // Assuming the API returns an 'elves' array
+      } catch (e) {
+        console.error("Error fetching elves: " + e.message);
+        setErrorElves(e.message);
+      } finally {
+        setLoadingElves(false);
+      }
+    };
+    fetchElves();
+  }, [apiKey, language, promptData]);
+
   const toggleElve = (elveName) => {
     setLocalSelectedElves((prev) => {
       if (prev.includes(elveName)) {
@@ -210,20 +232,28 @@ function ElveSelectionScreen({ setSelectedElves, setStep, language, elfOptions, 
       <h2 className="text-3xl font-bold mb-2 text-white">{t.whichElves}</h2>
       <p className="text-lg mb-6 text-white">{t.chooseUpTo4 || ""}</p>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {elfOptions.map((elf) => (
-          <button
-            key={elf.name}
-            onClick={() => toggleElve(elf.name)}
-            className={`p-4 border-2 transition text-left text-white justify-center items-start shadow-sm ${
-              localSelectedElves.includes(elf.name)
-                ? "bg-[#142138] text-white border-[#C6D8E8]"
-                : "bg-[#333335] hover:bg-[#142138] border-[#333335]"
-            }`}
-          >
-            <div className="font-bold text-xl mb-2 w-full text-center">{elf.name} {elf.emoji}</div>
-            <div className="text-sm w-full text-center">{elf.descriptions[language]}</div>
-          </button>
-        ))}
+        {loadingElves ? (
+          <LoadingSpinner language={language} translations={translations} />
+        ) : errorElves ? (
+          <p className="text-red-500">Error: {errorElves}</p>
+        ) : dynamicElves.length === 0 ? (
+          <p className="text-white">No elves found.</p>
+        ) : (
+          dynamicElves.map((elf) => (
+            <button
+              key={elf.name}
+              onClick={() => toggleElve(elf.name)}
+              className={`p-4 border-2 transition text-left text-white justify-center items-start shadow-sm ${
+                localSelectedElves.includes(elf.name)
+                  ? "bg-[#142138] text-white border-[#C6D8E8]"
+                  : "bg-[#333335] hover:bg-[#142138] border-[#333335]"
+              }`}
+            >
+              <div className="font-bold text-xl mb-2 w-full text-center">{elf.name}</div>
+              <div className="text-sm w-full text-center">{elf.desc}</div>
+            </button>
+          ))
+        )}
       </div>
       <button
         className={
@@ -734,7 +764,7 @@ export default function App() {
     API_KEY: <SetupScreen onSettingsSubmit={handleSetApiKey} language={language} translations={translations} />,
     MAIN_MENU: <MainMenuScreen setStep={setStep} language={language} translations={translations} />,
     THEME_SELECTION: <ThemeSelectionScreen apiKey={apiKey} setSelectedTheme={setTheme} setStep={setStep} language={language} translations={translations} promptData={promptData} />,
-    PUP_SELECTION: <ElveSelectionScreen setSelectedElves={setPups} setStep={setStep} language={language} elfOptions={elfOptions} translations={translations} theme={theme} />,
+    PUP_SELECTION: <ElveSelectionScreen setSelectedElves={setPups} setStep={setStep} language={language} elfOptions={elfOptions} translations={translations} theme={theme} apiKey={apiKey} promptData={promptData} />,
     INTRO_GENERATION: <IntroScreen apiKey={apiKey} theme={theme} pups={pups} story={story} setStory={setStory} setStep={setStep} language={language} translations={translations} promptData={promptData} />,
     STORY_WRITING: <StoryWritingScreen apiKey={apiKey} theme={theme} pups={pups} story={story} setStory={setStory} setStep={setStep} language={language} translations={translations} promptData={promptData} />,
     OUTRO: <OutroScreen apiKey={apiKey} theme={theme} pups={pups} story={story} onRestart={handleRestart} language={language} supabaseUrl={supabaseUrl} supabaseAnonKey={supabaseAnonKey} translations={translations} promptData={promptData} />,
