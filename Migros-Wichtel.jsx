@@ -245,15 +245,27 @@ function ElveSelectionScreen({ setSelectedElves, setStep, language, elfOptions, 
 function IntroScreen({ apiKey, theme, pups, story, setStory, setStep, language, translations, promptData }) {
   useEffect(() => {
     const generateIntro = async () => {
-      const role = promptData.migrosWichtelStoryPrompt.role.replace('{language}', language);
-      const theme = promptData.migrosWichtelStoryPrompt.theme.replace('{theme.title}', theme.title).replace('{theme.description}', theme.description);
-      const elves = promptData.migrosWichtelStoryPrompt.elves.replace('{elves}', pups.join(", "));
+      const role = promptData.migrosWichtelStoryPrompt.role;
+      const themePromptPart = promptData.migrosWichtelStoryPrompt.theme;
+      const elvesPromptPart = promptData.migrosWichtelStoryPrompt.elves;
       const expectation = promptData.migrosWichtelStoryPrompt.expectation;
       const context = promptData.migrosWichtelStoryPrompt.context;
       const tonalityStyle = promptData.migrosWichtelStoryPrompt.tonalityStyle;
       const additionalInfo = promptData.migrosWichtelStoryPrompt.additionalInfo;
       
-      const prompt = `${role}\n${theme}\n${elves}\n${expectation}\n${context}\n${tonalityStyle}\n${additionalInfo}\n${promptData.migrosWichtelStoryPrompt.introGeneration}`;
+      const introGenerationPart = promptData.migrosWichtelStoryPrompt.introGeneration
+        .replace('{theme.title}', theme.title)
+        .replace('{theme.description}', theme.description)
+        .replace('{elves}', pups.join(", "))
+        .replace('{language}', language);
+
+      const finalRole = role.replace('{language}', language);
+      const finalThemePromptPart = themePromptPart
+        .replace('{theme.title}', theme.title)
+        .replace('{theme.description}', theme.description);
+      const finalElvesPromptPart = elvesPromptPart.replace('{elves}', pups.join(", "));
+
+      const prompt = `${finalRole}\n${finalThemePromptPart}\n${finalElvesPromptPart}\n${expectation}\n${context}\n${tonalityStyle}\n${additionalInfo}\n${introGenerationPart}`;
       console.log("Intro Generation Prompt: ");
       console.log(prompt);
       try {
