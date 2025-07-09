@@ -201,10 +201,25 @@ function ElveSelectionScreen({ setSelectedElves, setStep, language, elfOptions, 
       setLoadingElves(true);
       setErrorElves(null);
       try {
-        const prompt = promptData.migrosWichtelStoryPrompt.elveSelectionGeneration;
+        
+        const role = promptData.migrosWichtelStoryPrompt.role;
+        const themePromptPart = promptData.migrosWichtelStoryPrompt.theme;
+        const context = promptData.migrosWichtelStoryPrompt.context;
+      
+        const finalRole = role.replace('{language}', language);
+        const finalThemePromptPart = themePromptPart
+          .replace('{theme.title}', theme.title)
+          .replace('{theme.description}', theme.description);
+        
+        const promptInstruction = promptData.migrosWichtelStoryPrompt.elveSelectionGeneration;
+        const prompt = `${finalRole}\n${finalThemePromptPart}\n${context}\n${promptInstruction}`;
+        console.log("Elve Selection Prompt: ");
+        console.log(prompt);
+
         const data = await callOpenAI(apiKey, prompt);
         console.log("OpenAI Elves API Response:", data);
-        setDynamicElves(data.elves || []); // Assuming the API returns an 'elves' array
+        const fetchedElves = data.elves || data.wichtel || [];
+        setDynamicElves(fetchedElves);
       } catch (e) {
         console.error("Error fetching elves: " + e.message);
         setErrorElves(e.message);
