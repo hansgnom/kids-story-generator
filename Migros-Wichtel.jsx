@@ -203,6 +203,7 @@ function ElveSelectionScreen({ setSelectedElves, setStep, language, elfOptions, 
       try {
         const prompt = promptData.migrosWichtelStoryPrompt.elveSelectionGeneration;
         const data = await callOpenAI(apiKey, prompt);
+        console.log("OpenAI Elves API Response:", data);
         setDynamicElves(data.elves || []); // Assuming the API returns an 'elves' array
       } catch (e) {
         console.error("Error fetching elves: " + e.message);
